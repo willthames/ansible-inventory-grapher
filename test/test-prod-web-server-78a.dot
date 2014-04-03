@@ -1,0 +1,20 @@
+digraph inventory {
+  production -> production_web;
+  production -> production_az_a;
+  all -> production_web_a;
+  production_web_a -> prod_web_server_78a;
+  all -> production;
+  all -> production_web;
+  all -> web;
+  all -> production_az_a;
+  web -> production_web;
+  production_web -> production_web_a;
+  production_az_a -> production_web_a;
+  prod_web_server_78a [label="prod-web-server-78a"]
+  web [shape=record; label=<<font face="Times New Roman, Bold" point-size="16">web</font>>]
+  production_az_a [shape=record; label=<<font face="Times New Roman, Bold" point-size="16">production-az-a</font>>]
+  all [shape=record; label=<<font face="Times New Roman, Bold" point-size="16">all</font>>]
+  production_web [shape=record; label=<<font face="Times New Roman, Bold" point-size="16">production-web</font>>]
+  production [shape=record; label=<<font face="Times New Roman, Bold" point-size="16">production</font>>]
+  production_web_a [shape=record; label=<<font face="Times New Roman, Bold" point-size="16">production-web-a</font>>]
+}
