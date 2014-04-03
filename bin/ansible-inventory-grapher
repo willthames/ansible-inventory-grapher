@@ -16,7 +16,7 @@ def options_parser():
                       default=os.getcwd())
     parser.add_option('--format', dest='format',
                       help='python format string to name output files [%default]',
-                      default='"{hostname}.dot"')
+                      default='{hostname}.dot')
     return parser
 
 
