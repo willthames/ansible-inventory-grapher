@@ -44,7 +44,7 @@ def generate_graph_for_host(host):
     lines.append("  {} [label=\"{}\"]".format(escape(host.name), host.name))
 
     for group in host.get_groups():
-        lines.append('  {} [shape=record; label=<<font face="Times New Roman, Bold" point-size="16">{}</font>>]'.format(escape(group.name), group.name))
+        lines.append('  {} [shape=record label=<<font face="Times New Roman, Bold" point-size="16">{}</font>>]'.format(escape(group.name), group.name))
 
     lines.append("}")
     return lines
