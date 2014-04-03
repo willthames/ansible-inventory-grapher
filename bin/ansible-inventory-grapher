@@ -54,7 +54,7 @@ def generate_graph(pattern, options):
     inventory = ansible.inventory.Inventory(options.inventory)
     hostnames = inventory.list_hosts(pattern)
     if not hostnames:
-        print "No hosts matched for pattern %s" % hostname
+        print "No hosts matched for pattern %s" % pattern
         return
     if not os.path.exists(options.directory):
         os.makedirs(options.directory)
