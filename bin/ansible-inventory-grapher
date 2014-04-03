@@ -5,12 +5,15 @@ import os
 import sys
 import ansible.utils
 import ansible.inventory
+import ansible.constants as C
 
 
 def options_parser():
     usage = "%prog [options] host1 [host2 ...]"
     parser = optparse.OptionParser(usage=usage)
-    parser.add_option('-i', dest='inventory')
+    parser.add_option('-i', dest='inventory',
+                    help="specify inventory host file [%default]",
+                    default=C.DEFAULT_HOST_LIST)
     parser.add_option('-d', dest='directory',
                       help="Location to output resulting files [current directory]",
                       default=os.getcwd())
@@ -51,7 +54,7 @@ def generate_graph(pattern, options):
     inventory = ansible.inventory.Inventory(options.inventory)
     hostnames = inventory.list_hosts(pattern)
     if not hostnames:
-        print "No hosts matched for pattern %s" % hostname
+        print "No hosts matched for pattern %s" % pattern
         return
     if not os.path.exists(options.directory):
         os.makedirs(options.directory)
