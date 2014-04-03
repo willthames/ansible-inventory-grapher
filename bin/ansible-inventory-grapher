@@ -1,25 +1,78 @@
 #!/usr/bin/env python
 
 import optparse
+import os
 import sys
 import ansible.utils
 import ansible.inventory
 
 
 def options_parser():
-    usage = "%prog [options] host"
+    usage = "%prog [options] host1 [host2 ...]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option('-i', dest='inventory')
+    parser.add_option('-d', dest='directory',
+                      help="Location to output resulting files [current directory]",
+                      default=os.getcwd())
+    parser.add_option('--format', dest='format',
+                      help='python format string to name output files [%default]',
+                      default='"{hostname}.dot"')
     return parser
+
+
+def parent_graphs(child, groups):
+    results = list()
+    for group in groups:
+        results.append("  {} -> {};".format(escape(group.name),
+                                            escape(child.name)))
+        if group.parent_groups:
+            results.extend(parent_graphs(group, group.parent_groups))
+    return results
+
+
+def escape(name):
+    return name.replace("-", "_")
+
+
+def generate_graph_for_host(host):
+    lines = ["digraph inventory {"]
+    # dedup graph lines
+    lines.extend(list(set(parent_graphs(host, host.groups))))
+    lines.append("  {} [label=\"{}\"]".format(escape(host.name), host.name))
+
+    for group in host.get_groups():
+        lines.append('  {} [shape=record; label=<<font face="Times New Roman, Bold" point-size="16">{}</font>>]'.format(escape(group.name), group.name))
+
+    lines.append("}")
+    return lines
+
+
+def generate_graph(pattern, options):
+    inventory = ansible.inventory.Inventory(options.inventory)
+    hostnames = inventory.list_hosts(pattern)
+    if not hostnames:
+        print "No hosts matched for pattern %s" % hostname
+        return
+    if not os.path.exists(options.directory):
+        os.makedirs(options.directory)
+    for hostname in hostnames:
+        host = inventory.get_host(hostname)
+        results = generate_graph_for_host(host)
+        filename = options.format.format(hostname=hostname)
+        fullpath = os.path.join(options.directory, filename)
+
+        with open(fullpath, 'w') as f:
+            f.write("\n".join(results))
 
 
 def main():
     parser = options_parser()
     (options, args) = parser.parse_args()
-    if not args: 
+    if not args:
         parser.print_help()
         sys.exit()
-    inventory = ansible.inventory.Inventory(options.inventory)
+    for arg in args:
+        generate_graph(arg, options)
 
 
 if __name__ == "__main__":
