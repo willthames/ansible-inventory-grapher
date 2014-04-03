@@ -28,4 +28,4 @@ The resulting graphs can then be converted to pngs using:
 ```
 for f in test/*.dot ; do dot -Tpng -o test/`basename $f .dot`.png $f; done
 ```
-[Resulting image for prod-web-server-78a](test/test-prod-web-server-78a.png)
+![Resulting image for prod-web-server-78a](test/test-prod-web-server-78a.png)
