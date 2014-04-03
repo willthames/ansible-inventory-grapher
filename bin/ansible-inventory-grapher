@@ -5,18 +5,21 @@ import os
 import sys
 import ansible.utils
 import ansible.inventory
+import ansible.constants as C
 
 
 def options_parser():
     usage = "%prog [options] host1 [host2 ...]"
     parser = optparse.OptionParser(usage=usage)
-    parser.add_option('-i', dest='inventory')
+    parser.add_option('-i', dest='inventory',
+                    help="specify inventory host file [%default]",
+                    default=C.DEFAULT_HOST_LIST)
     parser.add_option('-d', dest='directory',
                       help="Location to output resulting files [current directory]",
                       default=os.getcwd())
     parser.add_option('--format', dest='format',
                       help='python format string to name output files [%default]',
-                      default='"{hostname}.dot"')
+                      default='{hostname}.dot')
     return parser
 
 
