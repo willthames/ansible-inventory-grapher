@@ -12,10 +12,12 @@ Usage: ansible-inventory-grapher [options] host1 [host2 ...]
 
 Options:
   -h, --help       show this help message and exit
-  -i INVENTORY     
+  -i INVENTORY
   -d DIRECTORY     Location to output resulting files [current directory]
   --format=FORMAT  python format string to name output files
                    ["{hostname}.dot"]
+  -t TEMPLATE      path to jinja2 template used for creating output
+  -T               print default template
 ```
 
 Using the example inventory in https://github.com/willthames/ansible-ec2-example,
@@ -23,6 +25,9 @@ we can generate the dot files for two of the example web servers using:
 ```
 bin/ansible-inventory-grapher -i ../ansible-ec2-example/inventory/hosts prod-web-server-78a prod-web-server-28a -d test --format "test-{hostname}.dot"
 ```
+
+You can replace the default template (which can be seen by passing the `-T` variable to `ansible-inventory-grapher`) with a template file that can be
+passed with the `-t` option.
 
 The resulting graphs can then be converted to pngs using:
 ```
