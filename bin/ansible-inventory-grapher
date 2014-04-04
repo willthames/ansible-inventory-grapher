@@ -88,6 +88,11 @@ def options_parser():
 
 def parent_graphs(child, groups):
     results = list()
+    # Remove 'all' group from groups if a child has any other parent group
+    if len(groups) > 1:
+        allgroups = [g for g in groups if g.name == 'all']
+        if allgroups:
+            groups.remove(allgroups[0])
     for group in groups:
         results.append(Edge(group.name, child.name))
         if group.parent_groups:
