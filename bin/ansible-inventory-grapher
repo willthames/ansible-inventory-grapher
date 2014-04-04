@@ -34,7 +34,7 @@ def parent_graphs(child, groups):
 
 
 def escape(name):
-    return name.replace("-", "_")
+    return name.replace("-", "_").replace(".", "_")
 
 
 def generate_graph_for_host(host):
