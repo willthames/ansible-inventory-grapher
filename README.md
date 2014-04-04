@@ -2,7 +2,7 @@
 ansible-inventory-grapher creates a dot file suitable for use by
 graphviz
 
-Requires: 
+Requires:
 * a sensible Ansible setup (PYTHONPATH must include the Ansible libs)
 * graphviz
 
@@ -12,10 +12,10 @@ Usage: ansible-inventory-grapher [options] host1 [host2 ...]
 
 Options:
   -h, --help       show this help message and exit
-  -i INVENTORY     
+  -i INVENTORY     specify inventory host file [/home/will/src/ansible-
+                   playbooks/common/inventory/hosts]
   -d DIRECTORY     Location to output resulting files [current directory]
-  --format=FORMAT  python format string to name output files
-                   ["{hostname}.dot"]
+  --format=FORMAT  python format string to name output files [{hostname}.dot]
 ```
 
 Using the example inventory in https://github.com/willthames/ansible-ec2-example,
