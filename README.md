@@ -2,7 +2,7 @@
 ansible-inventory-grapher creates a dot file suitable for use by
 graphviz
 
-Requires: 
+Requires:
 * a sensible Ansible setup (PYTHONPATH must include the Ansible libs)
 * graphviz
 
