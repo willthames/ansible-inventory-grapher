@@ -39,6 +39,10 @@ DEFAULT_TEMPLATE = """digraph inventory {
 """
 
 
+# Cache for parent graph lookups
+_parents = dict()
+
+
 class Edge:
     def __init__(self, source, target):
         self.source = source
@@ -79,8 +83,8 @@ def options_parser():
     usage = "%prog [options] host1 [host2 ...]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option('-i', dest='inventory',
-                    help="specify inventory host file [%default]",
-                    default=C.DEFAULT_HOST_LIST)
+                      help="specify inventory host file [%default]",
+                      default=C.DEFAULT_HOST_LIST)
     parser.add_option('-d', dest='directory',
                       help="Location to output resulting files [current directory]",
                       default=os.getcwd())
@@ -94,16 +98,18 @@ def options_parser():
 
 
 def parent_graphs(child, groups):
-    results = list()
+    results = _parents.get(child.name, list())
     # Remove 'all' group from groups if a child has any other parent group
     if len(groups) > 1:
         allgroups = [g for g in groups if g.name == 'all']
         if allgroups:
             groups.remove(allgroups[0])
-    for group in groups:
-        results.append(Edge(group.name, child.name))
-        if group.parent_groups:
-            results.extend(parent_graphs(group, group.parent_groups))
+    if not results:
+        for group in groups:
+            results.append(Edge(group.name, child.name))
+            if group.parent_groups:
+                results.extend(parent_graphs(group, group.parent_groups))
+        _parents[child.name] = results
     return results
 
 
