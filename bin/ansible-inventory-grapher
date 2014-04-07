@@ -67,6 +67,14 @@ class Node:
         return self.name
 
 
+    def __eq__(self, other):
+        return self.name == other.name
+
+
+    def __hash__(self):
+        return hash(self.name)
+
+
 def options_parser():
     usage = "%prog [options] host1 [host2 ...]"
     parser = optparse.OptionParser(usage=usage)
@@ -77,8 +85,7 @@ def options_parser():
                       help="Location to output resulting files [current directory]",
                       default=os.getcwd())
     parser.add_option('--format', dest='format',
-                      help='python format string to name output files [%default]',
-                      default='{hostname}.dot')
+                      help='python format string to name output files e.g. {}.dot')
     parser.add_option('-t', dest='template', 
                       help='path to jinja2 template used for creating output')
     parser.add_option('-T', dest='print_template', action="store_true",
@@ -101,11 +108,11 @@ def labelescape(name):
 
 def generate_graph_for_host(host):
     # dedup graph edges
-    edges = list(set(parent_graphs(host, host.groups)))
-    nodes = [Node(host.name, leaf=True)]
+    edges = set(parent_graphs(host, host.groups))
+    nodes = {Node(host.name, leaf=True)}
 
     for group in host.get_groups():
-        nodes.append(Node(group.name))
+        nodes.add(Node(group.name))
 
     return (edges, nodes)
 
@@ -124,20 +131,26 @@ def load_template(options):
 def generate_graph(pattern, options):
     inventory = ansible.inventory.Inventory(options.inventory)
     hostnames = inventory.list_hosts(pattern)
+    template = load_template(options)
     if not hostnames:
         print "No hosts matched for pattern %s" % pattern
         return
     if not os.path.exists(options.directory):
         os.makedirs(options.directory)
-    template = load_template(options)
+    edges = set()
+    nodes = set()
     for hostname in hostnames:
         host = inventory.get_host(hostname)
-        (edges, nodes) = generate_graph_for_host(host)
-        filename = options.format.format(hostname=hostname)
+        (host_edges, host_nodes) = generate_graph_for_host(host)
+        edges |= host_edges
+        nodes |= host_nodes
+    if options.format:
+        filename = options.format.format(pattern)
         fullpath = os.path.join(options.directory, filename)
-
         with open(fullpath, 'w') as f:
             f.write(template.render(edges=edges, nodes=nodes))
+    else:
+        sys.stdout.write(template.render(edges=edges, nodes=nodes))
 
 
 def main():
