@@ -15,74 +15,137 @@
 # You should have received a copy of the GNU General Public License
 # along with ansible-inventory-grapher.  If not, see <http://www.gnu.org/licenses/>.
 
+import jinja2
 import optparse
 import os
 import sys
 import ansible.utils
 import ansible.inventory
+import ansible.constants as C
+
+
+DEFAULT_TEMPLATE = """digraph inventory {
+{% for edge in edges %}
+  {{ edge.source|labelescape }} -> {{ edge.target|labelescape }};
+{% endfor %}
+{% for node in nodes %}
+{% if node.leaf %}
+  {{ node.name|labelescape }} [label="{{node.name}}"]
+{% else %}
+  {{ node.name|labelescape }} [shape=record label=<<font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>>]
+{% endif %}{% endfor %}
+}
+
+"""
+
+
+class Edge:
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+
+    def __repr__(self):
+        return "{} -> {}".format(self.source, self.target)
+
+
+    def __eq__(self, other):
+        return self.source == other.source and self.target == other.target
+
+
+    def __hash__(self):
+        return hash(self.source + self.target)
+
+
+class Node:
+    def __init__(self, name, leaf=False):
+        self.name = name
+        self.leaf = leaf
+
+
+    def __repr__(self):
+        return self.name
 
 
 def options_parser():
     usage = "%prog [options] host1 [host2 ...]"
     parser = optparse.OptionParser(usage=usage)
-    parser.add_option('-i', dest='inventory')
+    parser.add_option('-i', dest='inventory',
+                    help="specify inventory host file [%default]",
+                    default=C.DEFAULT_HOST_LIST)
     parser.add_option('-d', dest='directory',
                       help="Location to output resulting files [current directory]",
                       default=os.getcwd())
     parser.add_option('--format', dest='format',
                       help='python format string to name output files [%default]',
-                      default='"{hostname}.dot"')
+                      default='{hostname}.dot')
+    parser.add_option('-t', dest='template', 
+                      help='path to jinja2 template used for creating output')
+    parser.add_option('-T', dest='print_template', action="store_true",
+                      help='print default template')
     return parser
 
 
 def parent_graphs(child, groups):
     results = list()
     for group in groups:
-        results.append("  {} -> {};".format(escape(group.name),
-                                            escape(child.name)))
+        results.append(Edge(group.name, child.name))
         if group.parent_groups:
             results.extend(parent_graphs(group, group.parent_groups))
     return results
 
 
-def escape(name):
-    return name.replace("-", "_")
+def labelescape(name):
+    return name.replace("-", "_").replace(".", "_")
 
 
 def generate_graph_for_host(host):
-    lines = ["digraph inventory {"]
-    # dedup graph lines
-    lines.extend(list(set(parent_graphs(host, host.groups))))
-    lines.append("  {} [label=\"{}\"]".format(escape(host.name), host.name))
+    # dedup graph edges
+    edges = list(set(parent_graphs(host, host.groups)))
+    nodes = [Node(host.name, leaf=True)]
 
     for group in host.get_groups():
-        lines.append('  {} [shape=record; label=<<font face="Times New Roman, Bold" point-size="16">{}</font>>]'.format(escape(group.name), group.name))
+        nodes.append(Node(group.name))
 
-    lines.append("}")
-    return lines
+    return (edges, nodes)
+
+
+def load_template(options):
+    env = jinja2.Environment(trim_blocks=True, loader=jinja2.FileSystemLoader(os.getcwd()))
+    env.filters['labelescape'] = labelescape
+
+    if options.template:
+        template = env.get_template(options.template)
+    else:
+        template = env.from_string(DEFAULT_TEMPLATE)
+    return template
 
 
 def generate_graph(pattern, options):
     inventory = ansible.inventory.Inventory(options.inventory)
     hostnames = inventory.list_hosts(pattern)
     if not hostnames:
-        print "No hosts matched for pattern %s" % hostname
+        print "No hosts matched for pattern %s" % pattern
         return
     if not os.path.exists(options.directory):
         os.makedirs(options.directory)
+    template = load_template(options)
     for hostname in hostnames:
         host = inventory.get_host(hostname)
-        results = generate_graph_for_host(host)
+        (edges, nodes) = generate_graph_for_host(host)
         filename = options.format.format(hostname=hostname)
         fullpath = os.path.join(options.directory, filename)
 
         with open(fullpath, 'w') as f:
-            f.write("\n".join(results))
+            f.write(template.render(edges=edges, nodes=nodes))
 
 
 def main():
     parser = options_parser()
     (options, args) = parser.parse_args()
+    if options.print_template:
+        print DEFAULT_TEMPLATE
+        sys.exit()
     if not args:
         parser.print_help()
         sys.exit()
