@@ -24,7 +24,7 @@ import ansible.inventory
 import ansible.constants as C
 
 
-DEFAULT_TEMPLATE = """digraph inventory {
+DEFAULT_TEMPLATE = """digraph {{pattern}} {
 {% for edge in edges %}
   {{ edge.source|labelescape }} -> {{ edge.target|labelescape }};
 {% endfor %}
@@ -80,7 +80,7 @@ class Node:
 
 
 def options_parser():
-    usage = "%prog [options] host1 [host2 ...]"
+    usage = "%prog [options] pattern1 [pattern2 ...]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option('-i', dest='inventory',
                       help="specify inventory host file [%default]",
@@ -88,8 +88,8 @@ def options_parser():
     parser.add_option('-d', dest='directory',
                       help="Location to output resulting files [current directory]",
                       default=os.getcwd())
-    parser.add_option('--format', dest='format',
-                      help='python format string to name output files e.g. {}.dot')
+    parser.add_option('-o', '--format', dest='format',
+                      help='python format string to name output files [%default] or - for stdout', default='{}.dot')
     parser.add_option('-t', dest='template', 
                       help='path to jinja2 template used for creating output')
     parser.add_option('-T', dest='print_template', action="store_true",
@@ -155,13 +155,14 @@ def generate_graph(pattern, options):
         (host_edges, host_nodes) = generate_graph_for_host(host)
         edges |= host_edges
         nodes |= host_nodes
-    if options.format:
+    output = template.render(edges=edges, nodes=nodes, pattern=pattern)
+    if options.format != '-':
         filename = options.format.format(pattern)
         fullpath = os.path.join(options.directory, filename)
         with open(fullpath, 'w') as f:
-            f.write(template.render(edges=edges, nodes=nodes))
+            f.write(output)
     else:
-        sys.stdout.write(template.render(edges=edges, nodes=nodes))
+        sys.stdout.write(output)
 
 
 def main():

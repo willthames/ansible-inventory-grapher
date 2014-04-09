@@ -8,16 +8,18 @@ Requires:
 
 ## Usage
 ```
-Usage: ansible-inventory-grapher [options] host1 [host2 ...]
+Usage: ansible-inventory-grapher [options] pattern1 [pattern2...]
 
 Options:
-  -h, --help       show this help message and exit
-  -i INVENTORY
-  -d DIRECTORY     Location to output resulting files [current directory]
-  --format=FORMAT  python format string to name output files
-                   ["{hostname}.dot"]
-  -t TEMPLATE      path to jinja2 template used for creating output
-  -T               print default template
+  -h, --help            show this help message and exit
+  -i INVENTORY          specify inventory host file
+                        [/Users/will/.ansible/hosts]
+  -d DIRECTORY          Location to output resulting files [current directory]
+  -o FORMAT, --format=FORMAT
+                        python format string to name output files [{}.dot] or
+                        - for stdout
+  -t TEMPLATE           path to jinja2 template used for creating output
+  -T                    print default template
 ```
 
 Using the example inventory in https://github.com/willthames/ansible-ec2-example,
@@ -34,3 +36,11 @@ The resulting graphs can then be converted to pngs using:
 for f in test/*.dot ; do dot -Tpng -o test/`basename $f .dot`.png $f; done
 ```
 ![Resulting image for prod-web-server-78a](test/test-prod-web-server-78a.png)
+
+Or the whole thing can now be done in one pipeline (only works for one pattern) 
+straight to image viewer (imagemagick's display in this example)
+```
+bin/ansible-inventory-grapher -i ../ansible-ec2-example/inventory/hosts prod-web-server-78a -o - | dot -Tpng | display png:-
+```
+
+This works with valid Ansible patterns now although only hosts and groups have been tested.
