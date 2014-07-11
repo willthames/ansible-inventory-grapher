@@ -24,7 +24,7 @@ import ansible.inventory
 import ansible.constants as C
 
 
-DEFAULT_TEMPLATE = """digraph {{pattern}} {
+DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
 {% for edge in edges %}
   {{ edge.source|labelescape }} -> {{ edge.target|labelescape }};
 {% endfor %}
@@ -32,7 +32,10 @@ DEFAULT_TEMPLATE = """digraph {{pattern}} {
 {% if node.leaf %}
   {{ node.name|labelescape }} [label="{{node.name}}"]
 {% else %}
-  {{ node.name|labelescape }} [shape=record label=<<font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>>]
+  {{ node.name|labelescape }} [shape=record label=<
+  <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
+{% if node.vars %} <hr/><font face="Times New Roman" point-size="14">{% for var in node.vars %}<br/>{{var}}{%endfor %}</font>{% endif %}
+>]
 {% endif %}{% endfor %}
 }
 
@@ -48,32 +51,27 @@ class Edge:
         self.source = source
         self.target = target
 
-
     def __repr__(self):
         return "{} -> {}".format(self.source, self.target)
 
-
     def __eq__(self, other):
         return self.source == other.source and self.target == other.target
-
 
     def __hash__(self):
         return hash(self.source + self.target)
 
 
 class Node:
-    def __init__(self, name, leaf=False):
+    def __init__(self, name, vars={}, leaf=False):
         self.name = name
         self.leaf = leaf
-
+        self.vars = vars
 
     def __repr__(self):
         return self.name
 
-
     def __eq__(self, other):
         return self.name == other.name
-
 
     def __hash__(self):
         return hash(self.name)
@@ -117,13 +115,31 @@ def labelescape(name):
     return name.replace("-", "_").replace(".", "_")
 
 
+def remove_inherited_group_vars(group):
+    vars = group.vars.copy()
+    for (k,v) in group.vars.items():
+        for group in group.get_ancestors():
+            if group.vars.get(k) == v:
+                vars.pop(k)
+    return vars
+
+
+def remove_inherited_host_vars(host):
+    vars = host.vars.copy()
+    for (k,v) in host.vars.items():
+        for group in host.get_groups():
+            if group.vars.get(k) == v:
+                vars.pop(k)
+    return vars
+
+
 def generate_graph_for_host(host):
     # dedup graph edges
     edges = set(parent_graphs(host, host.groups))
-    nodes = {Node(host.name, leaf=True)}
+    nodes = {Node(host.name, vars=remove_inherited_host_vars(host), leaf=True)}
 
     for group in host.get_groups():
-        nodes.add(Node(group.name))
+        nodes.add(Node(group.name, vars=remove_inherited_group_vars(group)))
 
     return (edges, nodes)
 
