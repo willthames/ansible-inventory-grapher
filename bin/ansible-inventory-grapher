@@ -40,7 +40,7 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
   <tr><td><b>
   <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
   </b></td></tr>
-{% if node.vars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars %}{{var}}<br/>{%endfor %}</font></td></tr>{% endif %}
+{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars %}{{var}}<br/>{%endfor %}</font></td></tr>{% endif %}
 </table>
 >]
 {% endif %}{% endfor %}
@@ -61,6 +61,9 @@ def options_parser():
     parser.add_option('-o', '--format', dest='format', default="-",
                       help="python format string to name output files " +
                       '(e.g. {}.dot) [defaults to stdout]')
+    parser.add_option('-q', '--no-variables', dest='showvars',
+                      action="store_false",
+                      help="Turn off variable display in default template")
     parser.add_option('-t', dest='template',
                       help='path to jinja2 template used for creating output')
     parser.add_option('-T', dest='print_template', action="store_true",
@@ -99,7 +102,8 @@ def render_graph(pattern, options):
         (host_edges, host_nodes) = grapher.generate_graph_for_host(host)
         edges |= host_edges
         nodes |= host_nodes
-    output = template.render(edges=edges, nodes=nodes, pattern=pattern)
+    output = template.render(edges=edges, nodes=nodes, pattern=pattern,
+                             showvars=options.showvars)
     if options.format != '-':
         filename = options.format.format(pattern)
         fullpath = os.path.join(options.directory, filename)

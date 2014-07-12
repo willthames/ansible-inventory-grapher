@@ -25,6 +25,7 @@ Options:
   -o FORMAT, --format=FORMAT
                         python format string to name output files (e.g. {}.dot) 
                         [defaults to stdout]
+  -q, --no-variables    Turn off variable display in default template
   -t TEMPLATE           path to jinja2 template used for creating output
   -T                    print default template
 ```
