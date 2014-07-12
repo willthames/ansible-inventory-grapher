@@ -36,8 +36,12 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
   {{ node.name|labelescape }} [label="{{node.name}}"]
 {% else %}
   {{ node.name|labelescape }} [shape=record label=<
+<table border="0" cellborder="0">
+  <tr><td><b>
   <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
-{% if node.vars %} <font face="Times New Roman, Bold" point-size="14">{% for var in node.vars %}<br/>{{var}}{%endfor %}</font>{% endif %}
+  </b></td></tr>
+{% if node.vars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars %}{{var}}<br/>{%endfor %}</font></td></tr>{% endif %}
+</table>
 >]
 {% endif %}{% endfor %}
 }
