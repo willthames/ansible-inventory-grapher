@@ -54,8 +54,9 @@ def options_parser():
     parser.add_option('-d', dest='directory',
                       help="Location to output resulting files [current directory]",
                       default=os.getcwd())
-    parser.add_option('-o', '--format', dest='format',
-                      help='python format string to name output files [%default] or - for stdout', default='{}.dot')
+    parser.add_option('-o', '--format', dest='format', default="-",
+                      help="python format string to name output files " +
+                      '(e.g. {}.dot) [defaults to stdout]')
     parser.add_option('-t', dest='template',
                       help='path to jinja2 template used for creating output')
     parser.add_option('-T', dest='print_template', action="store_true",

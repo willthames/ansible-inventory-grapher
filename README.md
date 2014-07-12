@@ -6,6 +6,13 @@ Requires:
 * a sensible Ansible setup (PYTHONPATH must include the Ansible libs)
 * graphviz
 
+## Getting started
+```
+git clone http://github.com/willthames/ansible-inventory-grapher
+cd ansible-inventory-grapher
+export PYTHONPATH=$PYTHONPATH:`pwd`/lib
+```
+
 ## Usage
 ```
 Usage: ansible-inventory-grapher [options] pattern1 [pattern2...]
@@ -16,8 +23,8 @@ Options:
                         [/Users/will/.ansible/hosts]
   -d DIRECTORY          Location to output resulting files [current directory]
   -o FORMAT, --format=FORMAT
-                        python format string to name output files [{}.dot] or
-                        - for stdout
+                        python format string to name output files (e.g. {}.dot) 
+                        [defaults to stdout]
   -t TEMPLATE           path to jinja2 template used for creating output
   -T                    print default template
 ```
