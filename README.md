@@ -42,12 +42,12 @@ The resulting graphs can then be converted to pngs using:
 ```
 for f in test/*.dot ; do dot -Tpng -o test/`basename $f .dot`.png $f; done
 ```
-![Resulting image for prod-web-server-78a](test/test-prod-web-server-78a.png)
+![Resulting image for prod-web-server-78a](test/test-prod-web-server-1a.png)
 
 Or the whole thing can now be done in one pipeline (only works for one pattern) 
 straight to image viewer (imagemagick's display in this example)
 ```
-bin/ansible-inventory-grapher -i ../ansible-ec2-example/inventory/hosts prod-web-server-78a | dot -Tpng | display png:-
+bin/ansible-inventory-grapher -i ../ansible-ec2-example/inventory/hosts prod-web-server-1a | dot -Tpng | display png:-
 ```
 
 This works with valid Ansible patterns now although only hosts and groups have been tested.

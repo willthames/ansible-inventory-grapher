@@ -1,0 +1,53 @@
+digraph prod_web_server_1a {
+  production -> production_web;
+  production -> production_az_a;
+  production_web_a -> prod_web_server_1a;
+  production_web -> production_web_a;
+  web -> production_web;
+  all -> web;
+  all -> production;
+  production_az_a -> production_web_a;
+  web [shape=record label=<
+<table>
+  <tr><td><b>
+  <font face="Times New Roman, Bold" point-size="16">web</font>
+  </b></td></tr>
+ <tr><td><font face="Times New Roman, Bold" point-size="14"><br/>customerdb_user<br/>storedb_user<br/>databases</font></td></tr></table>
+>]
+  production_az_a [shape=record label=<
+<table>
+  <tr><td><b>
+  <font face="Times New Roman, Bold" point-size="16">production-az-a</font>
+  </b></td></tr>
+ <tr><td><font face="Times New Roman, Bold" point-size="14"><br/>subnet<br/>zone</font></td></tr></table>
+>]
+  prod_web_server_1a [label="prod-web-server-1a"]
+  production_web_a [shape=record label=<
+<table>
+  <tr><td><b>
+  <font face="Times New Roman, Bold" point-size="16">production-web-a</font>
+  </b></td></tr>
+</table>
+>]
+  production_web [shape=record label=<
+<table>
+  <tr><td><b>
+  <font face="Times New Roman, Bold" point-size="16">production-web</font>
+  </b></td></tr>
+ <tr><td><font face="Times New Roman, Bold" point-size="14"><br/>instance_type</font></td></tr></table>
+>]
+  all [shape=record label=<
+<table>
+  <tr><td><b>
+  <font face="Times New Roman, Bold" point-size="16">all</font>
+  </b></td></tr>
+ <tr><td><font face="Times New Roman, Bold" point-size="14"><br/>sshkey<br/>image<br/>databases<br/>region<br/>storedb_dbname<br/>customerdb_dbname</font></td></tr></table>
+>]
+  production [shape=record label=<
+<table>
+  <tr><td><b>
+  <font face="Times New Roman, Bold" point-size="16">production</font>
+  </b></td></tr>
+ <tr><td><font face="Times New Roman, Bold" point-size="14"><br/>storedb_host<br/>customerdb_host<br/>databases<br/>security_group<br/>storedb_port<br/>customerdb_port</font></td></tr></table>
+>]
+}
