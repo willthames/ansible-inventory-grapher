@@ -1,0 +1,3 @@
+gp_overridden_in_parent: "parent"
+parent_overridden_in_child: "parent"
+parent_not_overridden: "parent"

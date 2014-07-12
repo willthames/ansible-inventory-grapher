@@ -23,6 +23,9 @@ import ansible.utils
 import ansible.inventory
 import ansible.constants as C
 
+import grapher
+from grapher import Node, Edge
+
 
 DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
 {% for edge in edges %}
@@ -34,47 +37,12 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
 {% else %}
   {{ node.name|labelescape }} [shape=record label=<
   <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
-{% if node.vars %} <hr/><font face="Times New Roman" point-size="14">{% for var in node.vars %}<br/>{{var}}{%endfor %}</font>{% endif %}
+{% if node.vars %} <font face="Times New Roman, Bold" point-size="14">{% for var in node.vars %}<br/>{{var}}{%endfor %}</font>{% endif %}
 >]
 {% endif %}{% endfor %}
 }
 
 """
-
-
-# Cache for parent graph lookups
-_parents = dict()
-
-
-class Edge:
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
-
-    def __repr__(self):
-        return "{} -> {}".format(self.source, self.target)
-
-    def __eq__(self, other):
-        return self.source == other.source and self.target == other.target
-
-    def __hash__(self):
-        return hash(self.source + self.target)
-
-
-class Node:
-    def __init__(self, name, vars={}, leaf=False):
-        self.name = name
-        self.leaf = leaf
-        self.vars = vars
-
-    def __repr__(self):
-        return self.name
-
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __hash__(self):
-        return hash(self.name)
 
 
 def options_parser():
@@ -88,60 +56,15 @@ def options_parser():
                       default=os.getcwd())
     parser.add_option('-o', '--format', dest='format',
                       help='python format string to name output files [%default] or - for stdout', default='{}.dot')
-    parser.add_option('-t', dest='template', 
+    parser.add_option('-t', dest='template',
                       help='path to jinja2 template used for creating output')
     parser.add_option('-T', dest='print_template', action="store_true",
                       help='print default template')
     return parser
 
 
-def parent_graphs(child, groups):
-    results = _parents.get(child.name, list())
-    # Remove 'all' group from groups if a child has any other parent group
-    if len(groups) > 1:
-        allgroups = [g for g in groups if g.name == 'all']
-        if allgroups:
-            groups.remove(allgroups[0])
-    if not results:
-        for group in groups:
-            results.append(Edge(group.name, child.name))
-            if group.parent_groups:
-                results.extend(parent_graphs(group, group.parent_groups))
-        _parents[child.name] = results
-    return results
-
-
 def labelescape(name):
     return name.replace("-", "_").replace(".", "_")
-
-
-def remove_inherited_group_vars(group):
-    vars = group.vars.copy()
-    for (k,v) in group.vars.items():
-        for group in group.get_ancestors():
-            if group.vars.get(k) == v:
-                vars.pop(k)
-    return vars
-
-
-def remove_inherited_host_vars(host):
-    vars = host.vars.copy()
-    for (k,v) in host.vars.items():
-        for group in host.get_groups():
-            if group.vars.get(k) == v:
-                vars.pop(k)
-    return vars
-
-
-def generate_graph_for_host(host):
-    # dedup graph edges
-    edges = set(parent_graphs(host, host.groups))
-    nodes = {Node(host.name, vars=remove_inherited_host_vars(host), leaf=True)}
-
-    for group in host.get_groups():
-        nodes.add(Node(group.name, vars=remove_inherited_group_vars(group)))
-
-    return (edges, nodes)
 
 
 def load_template(options):
@@ -155,7 +78,7 @@ def load_template(options):
     return template
 
 
-def generate_graph(pattern, options):
+def render_graph(pattern, options):
     inventory = ansible.inventory.Inventory(options.inventory)
     hostnames = inventory.list_hosts(pattern)
     template = load_template(options)
@@ -168,7 +91,7 @@ def generate_graph(pattern, options):
     nodes = set()
     for hostname in hostnames:
         host = inventory.get_host(hostname)
-        (host_edges, host_nodes) = generate_graph_for_host(host)
+        (host_edges, host_nodes) = grapher.generate_graph_for_host(host)
         edges |= host_edges
         nodes |= host_nodes
     output = template.render(edges=edges, nodes=nodes, pattern=pattern)
@@ -191,7 +114,7 @@ def main():
         parser.print_help()
         sys.exit()
     for arg in args:
-        generate_graph(arg, options)
+        render_graph(arg, options)
 
 
 if __name__ == "__main__":
