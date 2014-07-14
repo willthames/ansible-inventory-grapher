@@ -40,7 +40,7 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
   <tr><td><b>
   <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
   </b></td></tr>
-{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars %}{{var}}<br/>{%endfor %}</font></td></tr>{% endif %}
+{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}<br/>{%endfor %}</font></td></tr>{% endif %}
 </table>
 >]
 {% endif %}{% endfor %}
@@ -62,7 +62,7 @@ def options_parser():
                       help="python format string to name output files " +
                       '(e.g. {}.dot) [defaults to stdout]')
     parser.add_option('-q', '--no-variables', dest='showvars',
-                      action="store_false",
+                      action="store_false", default=True,
                       help="Turn off variable display in default template")
     parser.add_option('-t', dest='template',
                       help='path to jinja2 template used for creating output')
