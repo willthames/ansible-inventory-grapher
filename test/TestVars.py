@@ -3,7 +3,7 @@ import sys
 import unittest
 
 import ansible.inventory
-import grapher
+import ansibleinventorygrapher
 
 
 class TestVars(unittest.TestCase):

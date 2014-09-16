@@ -23,8 +23,8 @@ import ansible.utils
 import ansible.inventory
 import ansible.constants as C
 
-import grapher
-from grapher import Node, Edge
+import ansibleinventorygrapher
+from ansibleinventorygrapher import Node, Edge
 
 
 DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
@@ -99,7 +99,7 @@ def render_graph(pattern, options):
     nodes = set()
     for hostname in hostnames:
         host = inventory.get_host(hostname)
-        (host_edges, host_nodes) = grapher.generate_graph_for_host(host)
+        (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host)
         edges |= host_edges
         nodes |= host_nodes
     output = template.render(edges=edges, nodes=nodes, pattern=pattern,

@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with ansible-inventory-grapher.  If not, see <http://www.gnu.org/licenses/>.
 
+__version__ = '1.0.0'
+
 import ansible.utils
 import ansible.inventory
 import ansible.constants as C
