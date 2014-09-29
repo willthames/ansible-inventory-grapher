@@ -19,12 +19,10 @@ import jinja2
 import optparse
 import os
 import sys
-import ansible.utils
 import ansible.inventory
 import ansible.constants as C
 
 import ansibleinventorygrapher
-from ansibleinventorygrapher import Node, Edge
 
 
 DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {

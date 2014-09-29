@@ -17,9 +17,7 @@
 
 __version__ = '1.0.0'
 
-import ansible.utils
 import ansible.inventory
-import ansible.constants as C
 
 
 # Cache for parent graph lookups
