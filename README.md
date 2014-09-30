@@ -8,9 +8,7 @@ Requires:
 
 ## Getting started
 ```
-git clone http://github.com/willthames/ansible-inventory-grapher
-cd ansible-inventory-grapher
-export PYTHONPATH=$PYTHONPATH:`pwd`/lib
+pip install ansible-inventory-grapher
 ```
 
 ## Usage
