@@ -105,7 +105,8 @@ def generate_graph_for_host(host):
     # dedup graph edges
     edges = set(parent_graphs(host, host.groups))
     vars = tidy_all_the_variables(host)
-    nodes = {Node(host.name, vars=vars[host], leaf=True)}
+    nodes = set()
+    nodes.add(Node(host.name, vars=vars[host], leaf=True))
 
     for group in host.get_groups():
         nodes.add(Node(group.name, vars=vars[group]))

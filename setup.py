@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath('lib'))
 
 setup(
     name='ansible-inventory-grapher',
-    version='1.0.1',
+    version='1.0.2',
     description='Creates graphs representing ansible inventory',
     author='Will Thames',
     author_email='will@thames.id.au',
