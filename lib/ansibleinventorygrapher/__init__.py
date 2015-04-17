@@ -98,6 +98,7 @@ def tidy_all_the_variables(host):
     _vars[host] = host.vars.copy()
     for group in host.get_groups():
         remove_inherited_and_overridden_vars(_vars[host], group)
+        remove_inherited_and_overridden_group_vars(group)
     return _vars
 
 
