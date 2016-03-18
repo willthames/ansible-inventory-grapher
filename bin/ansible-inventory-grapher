@@ -21,8 +21,15 @@ import os
 import sys
 import ansible.inventory
 import ansible.constants as C
+try:
+    from ansible.parsing.dataloader import DataLoader
+    from ansible.vars import VariableManager
+    ANSIBLE_VERSION = 2
+except ImportError:
+    ANSIBLE_VERSION = 1
 
 import ansibleinventorygrapher
+from ansibleinventorygrapher.version import __version__
 
 
 DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
@@ -31,7 +38,14 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
 {% endfor %}
 {% for node in nodes %}
 {% if node.leaf %}
-  {{ node.name|labelescape }} [label="{{node.name}}"]
+  {{ node.name|labelescape }} [shape=record style=rounded label=<
+<table border="0" cellborder="0">
+  <tr><td><b>
+  <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
+  </b></td></tr>
+{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}<br/>{%endfor %}</font></td></tr>{% endif %}
+</table>
+>]
 {% else %}
   {{ node.name|labelescape }} [shape=record label=<
 <table border="0" cellborder="0">
@@ -49,7 +63,7 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
 
 def options_parser():
     usage = "%prog [options] pattern1 [pattern2 ...]"
-    parser = optparse.OptionParser(usage=usage)
+    parser = optparse.OptionParser(usage=usage,version="%prog " + __version__)
     parser.add_option('-i', dest='inventory',
                       help="specify inventory host file [%default]",
                       default=C.DEFAULT_HOST_LIST)
@@ -85,18 +99,27 @@ def load_template(options):
 
 
 def render_graph(pattern, options):
-    inventory = ansible.inventory.Inventory(options.inventory)
-    hostnames = inventory.list_hosts(pattern)
+    if ANSIBLE_VERSION > 1:
+        variable_manager = VariableManager()
+        loader = DataLoader()
+        inventory = ansible.inventory.Inventory(loader=loader, variable_manager=variable_manager, host_list=options.inventory)
+        variable_manager.set_inventory(inventory)
+    else:
+        inventory = ansible.inventory.Inventory(options.inventory)
+    hosts = inventory.list_hosts(pattern)
     template = load_template(options)
-    if not hostnames:
+    if not hosts:
         print "No hosts matched for pattern %s" % pattern
         return
     if not os.path.exists(options.directory):
         os.makedirs(options.directory)
     edges = set()
     nodes = set()
-    for hostname in hostnames:
-        host = inventory.get_host(hostname)
+    for host in hosts:
+        # inventory.list_hosts changed from list of hostnames to list
+        # of hosts between Ansible 1.9 and 2.0
+        if isinstance(host, basestring):
+            host = inventory.get_host(host)
         (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host)
         edges |= host_edges
         nodes |= host_nodes
