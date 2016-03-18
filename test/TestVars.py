@@ -4,18 +4,25 @@ import unittest
 
 import ansible.inventory
 import ansibleinventorygrapher
-from ansible.parsing.dataloader import DataLoader
-from ansible.vars import VariableManager
+try:
+    from ansible.parsing.dataloader import DataLoader
+    from ansible.vars import VariableManager
+    ANSIBLE_VERSION = 2
+except ImportError:
+    ANSIBLE_VERSION = 1
 
 class TestVars(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        variable_manager = VariableManager()
-        loader = DataLoader()
         invfile = os.path.join('test', 'inventory', 'hosts')
-        cls.inventory = ansible.inventory.Inventory(loader=loader, variable_manager=variable_manager, host_list=invfile)
-        variable_manager.set_inventory(cls.inventory)
+        if ANSIBLE_VERSION > 1:
+            variable_manager = VariableManager()
+            loader = DataLoader()
+            cls.inventory = ansible.inventory.Inventory(loader=loader, variable_manager=variable_manager, host_list=invfile)
+            variable_manager.set_inventory(cls.inventory)
+        else:
+            cls.inventory = ansible.inventory.Inventory(invfile)
         cls.host = cls.inventory.get_host("host")
         cls.vars = ansibleinventorygrapher.tidy_all_the_variables(cls.host)
 

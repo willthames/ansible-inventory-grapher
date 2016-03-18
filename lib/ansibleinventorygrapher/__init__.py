@@ -15,10 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with ansible-inventory-grapher.  If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = '1.0.0'
-
-import ansible.inventory
-
 
 # Cache for parent graph lookups
 _parents = dict()
@@ -73,12 +69,13 @@ def parent_graphs(child, groups):
         _parents[child.name] = results
     return results
 
+
 def remove_inherited_and_overridden_vars(vars, group):
     if group not in _vars:
         _vars[group] = group.vars.copy()
     gv = _vars[group]
     for (k, v) in vars.items():
-        if k in gv: 
+        if k in gv:
             if gv[k] == v:
                 vars.pop(k)
             else:
@@ -93,7 +90,7 @@ def remove_inherited_and_overridden_group_vars(group):
 
 
 def tidy_all_the_variables(host):
-    ''' removes all overridden and inherited variables from hosts 
+    ''' removes all overridden and inherited variables from hosts
         and groups '''
     _vars[host] = host.vars.copy()
     for group in host.get_groups():
