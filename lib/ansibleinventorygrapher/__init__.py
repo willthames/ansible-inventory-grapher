@@ -23,7 +23,7 @@ _parents = dict()
 _vars = dict()
 
 
-class Edge:
+class Edge(object):
     def __init__(self, source, target):
         self.source = source
         self.target = target
@@ -37,8 +37,7 @@ class Edge:
     def __hash__(self):
         return hash(self.source + self.target)
 
-
-class Node:
+class Node(object):
     def __init__(self, name, vars={}, leaf=False):
         self.name = name
         self.leaf = leaf

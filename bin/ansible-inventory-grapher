@@ -33,10 +33,9 @@ from ansibleinventorygrapher.version import __version__
 
 
 DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
-{% for edge in edges %}
-  {{ edge.source|labelescape }} -> {{ edge.target|labelescape }};
-{% endfor %}
-{% for node in nodes %}
+  rankdir = LR; {# LR = left->right ; TB = top->bottom #}
+
+{% for node in nodes|sort(attribute='name') %}
 {% if node.leaf %}
   {{ node.name|labelescape }} [shape=record style=rounded label=<
 <table border="0" cellborder="0">
@@ -56,8 +55,12 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
 </table>
 >]
 {% endif %}{% endfor %}
-}
 
+{% for edge in edges|sort(attribute='source') %}
+  {{ edge.source|labelescape }} -> {{ edge.target|labelescape }};
+{% endfor %}
+
+}
 """
 
 
