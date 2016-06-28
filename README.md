@@ -12,11 +12,11 @@ pip install ansible-inventory-grapher
 ```
 
 ## Usage
-```bash
+```
 Usage: ansible-inventory-grapher [options] pattern1 [pattern2...]
 
 Options:
-  --version             show program\'s version number and exit
+  --version             show program's version number and exit
   -h, --help            show this help message and exit
   -i INVENTORY          specify inventory host file [/etc/ansible/hosts]
   -d DIRECTORY          Location to output resulting files [current directory]
