@@ -20,6 +20,7 @@ import optparse
 import os
 import sys
 import ansible.inventory
+from ansible.cli import CLI
 import ansible.constants as C
 try:
     from ansible.parsing.dataloader import DataLoader
@@ -83,6 +84,10 @@ def options_parser():
                       help='path to jinja2 template used for creating output')
     parser.add_option('-T', dest='print_template', action="store_true",
                       help='print default template')
+    parser.add_option('--ask-vault-pass', dest='ask_vault_pass', action="store_true",
+                      help="prompt for vault password", default=False)
+    parser.add_option('--vault-password-file', dest='vault_password_file',
+                      help="Location of file with cleartext vault password", default=False)
     return parser
 
 
@@ -105,6 +110,12 @@ def render_graph(pattern, options):
     if ANSIBLE_VERSION > 1:
         variable_manager = VariableManager()
         loader = DataLoader()
+        if options.vault_password_file:
+            vault_pass = CLI.read_vault_password_file(options.vault_password_file, loader=loader)
+            loader.set_vault_password(vault_pass)
+        elif options.ask_vault_pass:
+            vault_pass = CLI.ask_vault_passwords()[0]
+            loader.set_vault_password(vault_pass)
         inventory = ansible.inventory.Inventory(loader=loader, variable_manager=variable_manager, host_list=options.inventory)
         variable_manager.set_inventory(inventory)
     else:
