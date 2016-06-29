@@ -33,29 +33,21 @@ import ansibleinventorygrapher
 from ansibleinventorygrapher.version import __version__
 
 
-DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
+DEFAULT_TEMPLATE = """digraph {{ pattern|labelescape }} {
   {{ attributes }}
 
 {% for node in nodes|sort(attribute='name') %}
-{% if node.leaf %}
-  {{ node.name|labelescape }} [shape=record style=rounded label=<
-<table border="0" cellborder="0">
-  <tr><td><b>
-  <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
-  </b></td></tr>
-{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}<br/>{%endfor %}</font></td></tr>{% endif %}
-</table>
->]
-{% else %}
-  {{ node.name|labelescape }} [shape=record label=<
-<table border="0" cellborder="0">
-  <tr><td><b>
-  <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
-  </b></td></tr>
-{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}<br/>{%endfor %}</font></td></tr>{% endif %}
-</table>
->]
-{% endif %}{% endfor %}
+  {{ node.name|labelescape }} [shape=record
+  {{- " style=rounded" if node.leaf }} label="
+{ {{ node.name }}
+{%- if node.vars and showvars %} |
+{% for var in node.vars|sort %}
+{{ var }} \l
+{% endfor -%}
+{% endif %}
+} "]
+
+{% endfor %}
 
 {% for edge in edges|sort(attribute='source') %}
   {{ edge.source|labelescape }} -> {{ edge.target|labelescape }};
