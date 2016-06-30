@@ -34,10 +34,9 @@ from ansibleinventorygrapher.version import __version__
 
 
 DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
-{% for edge in edges %}
-  {{ edge.source|labelescape }} -> {{ edge.target|labelescape }};
-{% endfor %}
-{% for node in nodes %}
+  {{ attributes }}
+
+{% for node in nodes|sort(attribute='name') %}
 {% if node.leaf %}
   {{ node.name|labelescape }} [shape=record style=rounded label=<
 <table border="0" cellborder="0">
@@ -57,8 +56,12 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
 </table>
 >]
 {% endif %}{% endfor %}
-}
 
+{% for edge in edges|sort(attribute='source') %}
+  {{ edge.source|labelescape }} -> {{ edge.target|labelescape }};
+{% endfor %}
+
+}
 """
 
 
@@ -81,6 +84,10 @@ def options_parser():
                       help='path to jinja2 template used for creating output')
     parser.add_option('-T', dest='print_template', action="store_true",
                       help='print default template')
+    parser.add_option('-a', dest='attributes',
+                      help='include top-level graphviz attributes from ' +
+                      'http://www.graphviz.org/doc/info/attrs.html [%default]',
+                      default='rankdir=TB;')
     parser.add_option('--ask-vault-pass', dest='ask_vault_pass', action="store_true",
                       help="prompt for vault password", default=False)
     parser.add_option('--vault-password-file', dest='vault_password_file',
@@ -135,6 +142,7 @@ def render_graph(pattern, options):
         edges |= host_edges
         nodes |= host_nodes
     output = template.render(edges=edges, nodes=nodes, pattern=pattern,
+                             attributes=options.attributes,
                              showvars=options.showvars)
     if options.format != '-':
         filename = options.format.format(pattern)

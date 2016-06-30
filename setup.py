@@ -23,4 +23,3 @@ setup(
     scripts=['bin/ansible-inventory-grapher'],
     test_suite="test",
 )
-
