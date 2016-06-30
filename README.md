@@ -51,7 +51,7 @@ You can add the `-a` option to insert a string with graphviz attributes (http://
 -a "layout=circo; overlap=false; splines=polyline;\
   node [ style=filled fillcolor=lightgrey ]"
 
-# OCD
+# orthogonal, UML-like inheritance connectors
 -a "rankdir=LR; splines=ortho; ranksep=2;\
   node [ width=5 style=filled fillcolor=lightgrey ];\
   edge [ dir=back arrowtail=empty ];"
