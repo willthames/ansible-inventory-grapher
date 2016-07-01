@@ -1,5 +1,4 @@
 import os
-import sys
 import unittest
 
 import ansible.inventory
@@ -11,15 +10,17 @@ try:
 except ImportError:
     ANSIBLE_VERSION = 1
 
-class TestVars(unittest.TestCase):
 
+class TestVars(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         invfile = os.path.join('test', 'inventory', 'hosts')
         if ANSIBLE_VERSION > 1:
             variable_manager = VariableManager()
             loader = DataLoader()
-            cls.inventory = ansible.inventory.Inventory(loader=loader, variable_manager=variable_manager, host_list=invfile)
+            cls.inventory = ansible.inventory.Inventory(loader=loader,
+                                                        variable_manager=variable_manager,
+                                                        host_list=invfile)
             variable_manager.set_inventory(cls.inventory)
         else:
             cls.inventory = ansible.inventory.Inventory(invfile)
@@ -44,4 +45,3 @@ class TestVars(unittest.TestCase):
         self.assertEqual(hvars["gp_overridden_in_child"], "child")
         self.assertEqual(hvars["parent_overridden_in_child"], "child")
         self.assertEqual(hvars["child_only"], "child")
-

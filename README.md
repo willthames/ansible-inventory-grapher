@@ -44,7 +44,8 @@ bin/ansible-inventory-grapher -i ../ansible-ec2-example/inventory/hosts \
 
 ## Customization
 
-You can generate different types of graph by using the `-a` option to insert a string with graphviz attributes (http://www.graphviz.org/doc/info/attrs.html) to apply to the root level of the graph.  Some fun examples:
+You can add the `-a` option to insert a string with graphviz attributes (http://www.graphviz.org/doc/info/attrs.html) to apply to the root level of the graph.  Some fun examples:
+
 ```bash
 # transpose the tree so it grows from left-right instead of top-bottom
 -a "rankdir=LR;"
@@ -53,7 +54,11 @@ You can generate different types of graph by using the `-a` option to insert a s
 -a "layout=circo; overlap=false; splines=polyline;\
   node [ style=filled fillcolor=lightgrey ]"
 
+<<<<<<< HEAD
 # OCD
+=======
+# orthogonal, UML-like inheritance connectors
+>>>>>>> bfe671a509b89262c43eb59b564c71b3904c8364
 -a "rankdir=LR; splines=ortho; ranksep=2;\
   node [ width=5 style=filled fillcolor=lightgrey ];\
   edge [ dir=back arrowtail=empty ];"
@@ -97,10 +102,10 @@ bin/ansible-inventory-grapher -t html_table_nodes.dot.j2 -i ./test/inventory/hos
   && dot -Tsvg all.dot > all.svg
 ```
 
-as an aside, SVG output can be nice, since you can open it in a
+as an aside, SVG output can be useful since you can open it in a
 browser to search and copy/paste text, as well as activate link URLs
 to open your nodes in ssh: (as in the sample above) or embed links to
-those nodes / groups in your monitoring site.
+those nodes / groups in your ansible-cmdb or monitoring site.
 
 ## Render Pipeline
 

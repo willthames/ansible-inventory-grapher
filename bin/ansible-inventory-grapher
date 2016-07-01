@@ -52,8 +52,8 @@ DEFAULT_TEMPLATE = """digraph {{ pattern|labelescape }} {
 {% for edge in edges|sort(attribute='source') %}
   {{ edge.source|labelescape }} -> {{ edge.target|labelescape }};
 {% endfor %}
-
 }
+
 """
 
 

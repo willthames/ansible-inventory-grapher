@@ -37,6 +37,7 @@ class Edge(object):
     def __hash__(self):
         return hash(self.source + self.target)
 
+
 class Node(object):
     def __init__(self, name, vars={}, leaf=False):
         self.name = name
