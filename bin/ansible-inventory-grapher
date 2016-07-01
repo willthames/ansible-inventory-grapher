@@ -37,7 +37,7 @@ DEFAULT_TEMPLATE = """digraph {{ pattern|labelescape }} {
   {{ attributes }}
 
 {% for node in nodes|sort(attribute='name') %}
-  {{ node.name|labelescape }} [shape=record
+  {{ node.name|labelescape }} [shape=record fontname="Times New Roman, Bold"
   {{- " style=rounded" if node.leaf }} label="
 { {{ node.name }}
 {%- if node.vars and showvars %} |
