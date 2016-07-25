@@ -25,7 +25,7 @@ class TestVars(unittest.TestCase):
         else:
             cls.inventory = ansible.inventory.Inventory(invfile)
         cls.host = cls.inventory.get_host("host")
-        cls.vars = ansibleinventorygrapher.tidy_all_the_variables(cls.host)
+        cls.vars = ansibleinventorygrapher.tidy_all_the_variables(cls.host, cls.inventory)
 
     def test_gp_group_vars(self):
         gp = self.inventory.get_group("grandparent")

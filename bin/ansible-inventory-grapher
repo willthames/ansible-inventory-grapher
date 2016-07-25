@@ -138,7 +138,7 @@ def render_graph(pattern, options):
         # of hosts between Ansible 1.9 and 2.0
         if isinstance(host, basestring):
             host = inventory.get_host(host)
-        (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host)
+        (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host, inventory)
         edges |= host_edges
         nodes |= host_nodes
     output = template.render(edges=edges, nodes=nodes, pattern=pattern,
