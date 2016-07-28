@@ -20,13 +20,20 @@ import optparse
 import os
 import sys
 import ansible.inventory
-from ansible.cli import CLI
 import ansible.constants as C
 try:
     from ansible.parsing.dataloader import DataLoader
     from ansible.vars import VariableManager
+    from ansible.cli import CLI
+    read_vault_file = CLI.read_vault_password_file
+    def ask_vault_pass():
+        return CLI.ask_vault_passwords()[0]
     ANSIBLE_VERSION = 2
 except ImportError:
+    from ansible import utils
+    read_vault_file = utils.read_vault_file
+    def ask_vault_pass():
+        return utils.ask_passwords(ask_vault_pass=True)[2]
     ANSIBLE_VERSION = 1
 
 import ansibleinventorygrapher
@@ -88,10 +95,12 @@ def options_parser():
                       help='include top-level graphviz attributes from ' +
                       'http://www.graphviz.org/doc/info/attrs.html [%default]',
                       default='rankdir=TB;')
-    parser.add_option('--ask-vault-pass', dest='ask_vault_pass', action="store_true",
+    parser.add_option('--ask-vault-pass', dest='ask_vault_pass',
+                      action="store_true",
                       help="prompt for vault password", default=False)
     parser.add_option('--vault-password-file', dest='vault_password_file',
-                      help="Location of file with cleartext vault password", default=False)
+                      help="Location of file with cleartext vault password",
+                      default=False)
     return parser
 
 
@@ -111,19 +120,22 @@ def load_template(options):
 
 
 def render_graph(pattern, options):
+    vault_pass = None
+    if options.ask_vault_pass:
+        vault_pass = ask_vault_pass()
     if ANSIBLE_VERSION > 1:
         variable_manager = VariableManager()
         loader = DataLoader()
         if options.vault_password_file:
-            vault_pass = CLI.read_vault_password_file(options.vault_password_file, loader=loader)
-            loader.set_vault_password(vault_pass)
-        elif options.ask_vault_pass:
-            vault_pass = CLI.ask_vault_passwords()[0]
+            vault_pass = read_vault_file(options.vault_password_file, loader=loader)
+        if vault_pass:
             loader.set_vault_password(vault_pass)
         inventory = ansible.inventory.Inventory(loader=loader, variable_manager=variable_manager, host_list=options.inventory)
         variable_manager.set_inventory(inventory)
     else:
-        inventory = ansible.inventory.Inventory(options.inventory)
+        if options.vault_password_file:
+            vault_pass = read_vault_file(options.vault_password_file)
+        inventory = ansible.inventory.Inventory(options.inventory, vault_password=vault_pass)
     hosts = inventory.list_hosts(pattern)
     template = load_template(options)
     if not hosts:
