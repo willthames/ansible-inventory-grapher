@@ -3,8 +3,11 @@ ansible-inventory-grapher creates a dot file suitable for use by
 graphviz
 
 Requires:
-* a sensible Ansible setup (PYTHONPATH must include the Ansible libs)
+* ansible
 * graphviz
+
+[![PyPI version](https://img.shields.io/pypi/v/ansible-inventory-grapher.svg)](https://pypi.python.org/pypi/ansible-inventory-grapher)
+[![Build Status](https://travis-ci.org/willthames/ansible-inventory-grapher.svg?branch=master)](https://travis-ci.org/willthames/ansible-inventory-grapher)
 
 ## Getting started
 ```bash
