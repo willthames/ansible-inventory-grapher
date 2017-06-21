@@ -74,14 +74,11 @@ def get_host_vars(host, inventory):
 
 def parent_graphs(child, groups):
     results = _parents.get(child.name, list())
-    # Remove 'all' group from groups if a child has any other parent group
-    if len(groups) > 1:
-        allgroups = [g for g in groups if g.name == 'all']
-        if allgroups:
-            groups.remove(allgroups[0])
     if not results:
         for group in groups:
-            results.append(Edge(group.name, child.name))
+            # Don't add an edge from this child to 'all' if it has another parent
+            if not (len(groups) > 1 and group.name == 'all'):
+                results.append(Edge(group.name, child.name))
             if group.parent_groups:
                 results.extend(parent_graphs(group, group.parent_groups))
         _parents[child.name] = results
