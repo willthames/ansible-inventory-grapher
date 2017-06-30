@@ -76,8 +76,9 @@ def parent_graphs(child, groups):
     results = _parents.get(child.name, list())
     if not results:
         for group in groups:
-            # Don't add an edge from this child to 'all' if it has another parent
-            if not (len(groups) > 1 and group.name == 'all'):
+            # For all other groups, if its parents contain this group, then
+            # don't add this group as an edge
+            if not any([group in g.parent_groups for g in groups if g != group]):
                 results.append(Edge(group.name, child.name))
             if group.parent_groups:
                 results.extend(parent_graphs(group, group.parent_groups))
