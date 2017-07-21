@@ -105,7 +105,7 @@ def options_parser():
 
 
 def labelescape(name):
-    return name.replace("-", "_").replace(".", "_")
+    return "\"%s\"" % name.replace("-", "_").replace(".", "_")
 
 
 def load_template(options):
