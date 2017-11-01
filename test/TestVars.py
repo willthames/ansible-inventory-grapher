@@ -1,41 +1,26 @@
 import os
 import unittest
 
-import ansible.inventory
-import ansibleinventorygrapher
-try:
-    from ansible.parsing.dataloader import DataLoader
-    from ansible.vars import VariableManager
-    ANSIBLE_VERSION = 2
-except ImportError:
-    ANSIBLE_VERSION = 1
+import ansibleinventorygrapher.inventory
 
 
 class TestVars(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         invfile = os.path.join('test', 'inventory', 'hosts')
-        if ANSIBLE_VERSION > 1:
-            variable_manager = VariableManager()
-            loader = DataLoader()
-            cls.inventory = ansible.inventory.Inventory(loader=loader,
-                                                        variable_manager=variable_manager,
-                                                        host_list=invfile)
-            variable_manager.set_inventory(cls.inventory)
-        else:
-            cls.inventory = ansible.inventory.Inventory(invfile)
-        cls.host = cls.inventory.get_host("host")
-        cls.vars = ansibleinventorygrapher.tidy_all_the_variables(cls.host, cls.inventory)
+        cls.inventory_mgr = ansibleinventorygrapher.inventory.InventoryManager(invfile)
+        cls.host = cls.inventory_mgr.inventory.get_host("host")
+        cls.vars = ansibleinventorygrapher.tidy_all_the_variables(cls.host, cls.inventory_mgr)
 
     def test_gp_group_vars(self):
-        gp = self.inventory.get_group("grandparent")
-        gvars = self.vars[gp].copy()
+        gp = self.inventory_mgr.inventory.get_group("grandparent")
+        gvars = self.vars[gp]
         self.assertEqual(gvars.keys(), ["gp_not_overridden"])
         self.assertEqual(gvars["gp_not_overridden"], "gp")
 
     def test_parent_group_vars(self):
-        parent = self.inventory.get_group("parent")
-        pvars = self.vars[parent].copy()
+        parent = self.inventory_mgr.inventory.get_group("parent")
+        pvars = self.vars[parent]
         self.assertEqual(set(pvars.keys()), set(["parent_not_overridden",
                          "gp_overridden_in_parent"]))
         self.assertEqual(pvars["parent_not_overridden"], "parent")

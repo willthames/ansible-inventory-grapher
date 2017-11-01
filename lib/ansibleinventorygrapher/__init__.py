@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with ansible-inventory-grapher.  If not, see <http://www.gnu.org/licenses/>.
 
-import inspect
 
 # Cache for parent graph lookups
 _parents = dict()
@@ -55,23 +54,6 @@ class Node(object):
         return hash(self.name)
 
 
-def handle_missing_return_result(fn, member):
-    # http://stackoverflow.com/a/197053
-    vars = inspect.getargspec(fn)
-    if 'return_results' in vars[0]:
-        return fn(member, return_results=True)
-    else:
-        return fn(member)
-
-
-def get_group_vars(group, inventory):
-    return handle_missing_return_result(inventory.get_group_vars, group)
-
-
-def get_host_vars(host, inventory):
-    return handle_missing_return_result(inventory.get_host_vars, host)
-
-
 def parent_graphs(child, groups):
     results = _parents.get(child.name, list())
     if not results:
@@ -86,9 +68,9 @@ def parent_graphs(child, groups):
     return results
 
 
-def remove_inherited_and_overridden_vars(vars, group, inventory):
+def remove_inherited_and_overridden_vars(vars, group, inventory_mgr):
     if group not in _vars:
-        _vars[group] = get_group_vars(group, inventory)
+        _vars[group] = inventory_mgr.inventory.get_group_vars(group)
     gv = _vars[group]
     for (k, v) in vars.items():
         if k in gv:
@@ -98,27 +80,27 @@ def remove_inherited_and_overridden_vars(vars, group, inventory):
                 gv.pop(k)
 
 
-def remove_inherited_and_overridden_group_vars(group, inventory):
+def remove_inherited_and_overridden_group_vars(group, inventory_mgr):
     if group not in _vars:
-        _vars[group] = get_group_vars(group, inventory)
+        _vars[group] = inventory_mgr.inventory.get_group_vars(group)
     for ancestor in group.get_ancestors():
-        remove_inherited_and_overridden_vars(_vars[group], ancestor, inventory)
+        remove_inherited_and_overridden_vars(_vars[group], ancestor, inventory_mgr)
 
 
-def tidy_all_the_variables(host, inventory):
+def tidy_all_the_variables(host, inventory_mgr):
     ''' removes all overridden and inherited variables from hosts
         and groups '''
-    _vars[host] = get_host_vars(host, inventory)
+    _vars[host] = inventory_mgr.inventory.get_host_vars(host)
     for group in host.get_groups():
-        remove_inherited_and_overridden_vars(_vars[host], group, inventory)
-        remove_inherited_and_overridden_group_vars(group, inventory)
+        remove_inherited_and_overridden_vars(_vars[host], group, inventory_mgr)
+        remove_inherited_and_overridden_group_vars(group, inventory_mgr)
     return _vars
 
 
-def generate_graph_for_host(host, inventory):
+def generate_graph_for_host(host, inventory_mgr):
     # dedup graph edges
     edges = set(parent_graphs(host, host.groups))
-    vars = tidy_all_the_variables(host, inventory)
+    vars = tidy_all_the_variables(host, inventory_mgr)
     nodes = set()
     nodes.add(Node(host.name, vars=vars[host], leaf=True))
 

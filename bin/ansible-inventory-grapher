@@ -21,22 +21,8 @@ import os
 import sys
 import ansible.inventory
 import ansible.constants as C
-try:
-    from ansible.parsing.dataloader import DataLoader
-    from ansible.vars import VariableManager
-    from ansible.cli import CLI
-    read_vault_file = CLI.read_vault_password_file
-    def ask_vault_pass():
-        return CLI.ask_vault_passwords()[0]
-    ANSIBLE_VERSION = 2
-except ImportError:
-    from ansible import utils
-    read_vault_file = utils.read_vault_file
-    def ask_vault_pass():
-        return utils.ask_passwords(ask_vault_pass=True)[2]
-    ANSIBLE_VERSION = 1
 
-import ansibleinventorygrapher
+import ansibleinventorygrapher.inventory
 from ansibleinventorygrapher.version import __version__
 
 
@@ -120,23 +106,9 @@ def load_template(options):
 
 
 def render_graph(pattern, options):
-    vault_pass = None
-    if options.ask_vault_pass:
-        vault_pass = ask_vault_pass()
-    if ANSIBLE_VERSION > 1:
-        variable_manager = VariableManager()
-        loader = DataLoader()
-        if options.vault_password_file:
-            vault_pass = read_vault_file(options.vault_password_file, loader=loader)
-        if vault_pass:
-            loader.set_vault_password(vault_pass)
-        inventory = ansible.inventory.Inventory(loader=loader, variable_manager=variable_manager, host_list=options.inventory)
-        variable_manager.set_inventory(inventory)
-    else:
-        if options.vault_password_file:
-            vault_pass = read_vault_file(options.vault_password_file)
-        inventory = ansible.inventory.Inventory(options.inventory, vault_password=vault_pass)
-    hosts = inventory.list_hosts(pattern)
+    inventory_mgr = ansibleinventorygrapher.inventory.InventoryManager(options.inventory, options.ask_vault_pass, options.vault_password_file)
+
+    hosts = inventory_mgr.inventory.list_hosts(pattern)
     template = load_template(options)
     if not hosts:
         print "No hosts matched for pattern %s" % pattern
@@ -149,8 +121,8 @@ def render_graph(pattern, options):
         # inventory.list_hosts changed from list of hostnames to list
         # of hosts between Ansible 1.9 and 2.0
         if isinstance(host, basestring):
-            host = inventory.get_host(host)
-        (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host, inventory)
+            host = inventory_mgr.inventory.get_host(host)
+        (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host, inventory_mgr)
         edges |= host_edges
         nodes |= host_nodes
     output = template.render(edges=edges, nodes=nodes, pattern=pattern,
