@@ -95,8 +95,9 @@ class Inventory20(Inventory):
 class Inventory24(Inventory):
 
     def ask_vault_password(self):
-        from ansible.parsing.vault import PromptVaultPass
-        return PromptVaultPass.ask_vault_passwords()[0]
+        from ansible.parsing.vault import PromptVaultSecret
+        prompt_vault_secret = PromptVaultSecret()
+        return prompt_vault_secret.ask_vault_passwords()[0]
 
     def __init__(self, inventory, ask_vault_pass, vault_password_file):
         from ansible.parsing.vault import FileVaultSecret
