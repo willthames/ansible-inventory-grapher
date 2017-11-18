@@ -126,7 +126,9 @@ def render_graph(pattern, options):
         inventory_mgr = ansibleinventorygrapher.inventory.InventoryManager(options.inventory, options.ask_vault_pass,
                                                                            options.vault_password_files, options.vault_ids)
     except NotImplementedError:
-        sys.stderr.write("Multiple vault password files and vault identities are only supported with Ansible 2.4 or greater")
+        raise SystemExit("Multiple vault password files and vault identities are only supported with Ansible 2.4 or greater")
+    except ansibleinventorygrapher.inventory.NoVaultSecretFound:
+        raise SystemExit("Couldn't find a secret to decrypt vaulted file(s)")
 
     hosts = inventory_mgr.inventory.list_hosts(pattern)
     template = load_template(options)
@@ -142,7 +144,10 @@ def render_graph(pattern, options):
         # of hosts between Ansible 1.9 and 2.0
         if isinstance(host, string_types):
             host = inventory_mgr.inventory.get_host(host)
-        (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host, inventory_mgr)
+        try:
+            (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host, inventory_mgr)
+        except ansibleinventorygrapher.inventory.NoVaultSecretFound:
+            raise SystemExit("Couldn't find a secret to decrypt vaulted file(s)")
         edges |= host_edges
         nodes |= host_nodes
     output = template.render(edges=edges, nodes=nodes, pattern=pattern,

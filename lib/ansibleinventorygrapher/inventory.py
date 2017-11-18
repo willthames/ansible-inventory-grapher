@@ -18,6 +18,10 @@
 import ansible.inventory
 
 
+class NoVaultSecretFound(Exception):
+    pass
+
+
 class Inventory(object):
     def __init__(self):
         self.vault_pass = None
@@ -40,7 +44,11 @@ class Inventory19(Inventory):
             self.vault_pass = utils.ask_passwords(ask_vault_pass=True)[2]
         elif vault_password_files:
             self.vault_pass = utils.read_vault_file(vault_password_files[0])
-        self.inventory = ansible.inventory.Inventory(inventory, vault_password=self.vault_pass)
+        try:
+            self.inventory = ansible.inventory.Inventory(inventory, vault_password=self.vault_pass)
+        except ansible.errors.AnsibleError:
+            raise NoVaultSecretFound
+
         self.variable_manager = None
 
     def get_group_vars(self, group):
@@ -68,8 +76,12 @@ class Inventory20(Inventory):
         if self.vault_pass is not None:
             loader.set_vault_password(self.vault_pass)
         self.variable_manager = VariableManager()
-        self.inventory = ansible.inventory.Inventory(loader=loader, variable_manager=self.variable_manager,
-                                                     host_list=inventory)
+        try:
+            self.inventory = ansible.inventory.Inventory(loader=loader,
+                                                         variable_manager=self.variable_manager,
+                                                         host_list=inventory)
+        except ansible.errors.AnsibleError:
+            raise NoVaultSecretFound
         self.variable_manager.set_inventory(self.inventory)
 
     def _handle_missing_return_result(self, fn, member):
@@ -138,12 +150,15 @@ class Inventory24(Inventory):
         return self._plugins_inventory([group])
 
     def get_host_vars(self, host):
-        all_vars = self.variable_manager.get_vars(host=host, include_hostvars=True)
+        try:
+            all_vars = self.variable_manager.get_vars(host=host, include_hostvars=True)
+        except ansible.errors.AnsibleParserError:
+            raise NoVaultSecretFound
         # play, host, task, include_hostvars, include_delegate_to
-        MAGIC_VARS = ['ansible_playbook_python', 'groups', 'group_names', 'inventory_dir',
+        magic_vars = ['ansible_playbook_python', 'groups', 'group_names', 'inventory_dir',
                       'inventory_file', 'inventory_hostname', 'inventory_hostname_short',
                       'omit', 'playbook_dir']
-        return {k: v for (k, v) in all_vars.items() if k not in MAGIC_VARS}
+        return {k: v for (k, v) in all_vars.items() if k not in magic_vars}
 
     def get_group(self, group_name):
         return self.inventory.groups[group_name]

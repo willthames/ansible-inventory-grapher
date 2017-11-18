@@ -42,3 +42,16 @@ class TestVault(unittest.TestCase):
         except NotImplementedError:
             pass  # ansible-vault only supports vault-id from 2.4
 
+    def test_no_vault_pass(self):
+        invfile = os.path.join('test', 'vault', 'inventory')
+        vault_password_files = [os.path.join('test', 'vault', 'vaultpass'),
+                                os.path.join('test', 'vault', 'notthevaultpass')]
+        try:
+            inventory_mgr = ansibleinventorygrapher.inventory.InventoryManager(invfile, False, [])
+            hostname = "web-01"
+            host = inventory_mgr.inventory.get_host(hostname)
+            the_vars = ansibleinventorygrapher.tidy_all_the_variables(host, inventory_mgr)
+            raise RuntimeError
+        except ansibleinventorygrapher.inventory.NoVaultSecretFound:
+            pass  # expected behaviour
+
