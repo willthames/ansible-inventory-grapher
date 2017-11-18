@@ -15,7 +15,7 @@ class TestVars(unittest.TestCase):
     def test_gp_group_vars(self):
         gp = self.inventory_mgr.inventory.get_group("grandparent")
         gvars = self.vars[gp]
-        self.assertEqual(gvars.keys(), ["gp_not_overridden"])
+        self.assertEqual(set(gvars.keys()), set(["gp_not_overridden"]))
         self.assertEqual(gvars["gp_not_overridden"], "gp")
 
     def test_parent_group_vars(self):

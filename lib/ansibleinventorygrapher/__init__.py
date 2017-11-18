@@ -72,12 +72,12 @@ def remove_inherited_and_overridden_vars(vars, group, inventory_mgr):
     if group not in _vars:
         _vars[group] = inventory_mgr.inventory.get_group_vars(group)
     gv = _vars[group]
-    for (k, v) in vars.items():
+    for (k, v) in vars.copy().items():
         if k in gv:
             if gv[k] == v:
-                vars.pop(k)
+                del(vars[k])
             else:
-                gv.pop(k)
+                del(gv[k])
 
 
 def remove_inherited_and_overridden_group_vars(group, inventory_mgr):

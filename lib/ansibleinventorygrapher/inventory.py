@@ -95,7 +95,6 @@ class Inventory24(Inventory):
 
     def __init__(self, inventory, ask_vault_pass, vault_password_files, vault_ids):
         from ansible.cli import CLI
-        from ansible.parsing.vault import FileVaultSecret
         super(Inventory24, self).__init__()
         loader = DataLoader()
         if vault_ids or vault_password_files or ask_vault_pass:
