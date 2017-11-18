@@ -84,10 +84,23 @@ def options_parser():
     parser.add_option('--ask-vault-pass', dest='ask_vault_pass',
                       action="store_true",
                       help="prompt for vault password", default=False)
-    parser.add_option('--vault-password-file', dest='vault_password_file',
-                      help="Location of file with cleartext vault password",
-                      default=False)
+    parser.add_option('--vault-password-file', default=[], dest='vault_password_files',
+                      help="vault password file", action="callback", callback=unfrack_paths, type='string')
+    parser.add_option('--vault-id', default=[], dest='vault_ids', action='append', type='string',
+                      help='the vault identity to use')
+
     return parser
+
+
+def unfrack_paths(option, opt, value, parser):
+    try:
+        from ansible.cli import CLI
+    except ImportError:
+        try:
+            from ansible import CLI
+            return CLI.unfrack_paths(option, opt, value, parser)
+        except (ImportError, AttributeError):
+            pass  # paths remains unfracked
 
 
 def labelescape(name):
@@ -106,7 +119,11 @@ def load_template(options):
 
 
 def render_graph(pattern, options):
-    inventory_mgr = ansibleinventorygrapher.inventory.InventoryManager(options.inventory, options.ask_vault_pass, options.vault_password_file)
+    try:
+        inventory_mgr = ansibleinventorygrapher.inventory.InventoryManager(options.inventory, options.ask_vault_pass,
+                                                                           options.vault_password_files, options.vault_ids)
+    except NotImplementedError:
+        sys.stderr.write("Multiple vault password files and vault identities are only supported with Ansible 2.4 or greater")
 
     hosts = inventory_mgr.inventory.list_hosts(pattern)
     template = load_template(options)

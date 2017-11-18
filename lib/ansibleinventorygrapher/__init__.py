@@ -20,7 +20,7 @@
 _parents = dict()
 
 # Cache for variables
-_vars = dict()
+_vars = None
 
 
 class Edge(object):
@@ -90,6 +90,8 @@ def remove_inherited_and_overridden_group_vars(group, inventory_mgr):
 def tidy_all_the_variables(host, inventory_mgr):
     ''' removes all overridden and inherited variables from hosts
         and groups '''
+    global _vars
+    _vars = dict()
     _vars[host] = inventory_mgr.inventory.get_host_vars(host)
     for group in host.get_groups():
         remove_inherited_and_overridden_vars(_vars[host], group, inventory_mgr)

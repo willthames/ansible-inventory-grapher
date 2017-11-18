@@ -19,13 +19,8 @@ import ansible.inventory
 
 
 class Inventory(object):
-    def __init__(self, inventory, ask_vault_pass, vault_password_file):
-        if ask_vault_pass:
-            self.vault_pass = self.ask_vault_password()
-        elif vault_password_file:
-            self.vault_pass = self.read_vault_password_file(vault_password_file)
-        else:
-            self.vault_pass = None
+    def __init__(self):
+        self.vault_pass = None
 
     def get_host(self, host):
         return self.inventory.get_host(host)
@@ -36,14 +31,15 @@ class Inventory(object):
 
 class Inventory19(Inventory):
 
-    def ask_vault_password(self):
+    def __init__(self, inventory, ask_vault_pass, vault_password_files, vault_ids):
+        if vault_ids or len(vault_password_files) > 1:
+            raise NotImplementedError
         from ansible import utils
-        return utils.ask_passwords(ask_vault_pass=True)[2]
-
-    def __init__(self, inventory, ask_vault_pass, vault_password_file):
-        from ansible import utils
-        self.read_vault_password_file = utils.read_vault_file
-        super(Inventory19, self).__init__(inventory, ask_vault_pass, vault_password_file)
+        super(Inventory19, self).__init__()
+        if ask_vault_pass:
+            self.vault_pass = utils.ask_passwords(ask_vault_pass=True)[2]
+        elif vault_password_files:
+            self.vault_pass = utils.read_vault_file(vault_password_files[0])
         self.inventory = ansible.inventory.Inventory(inventory, vault_password=self.vault_pass)
         self.variable_manager = None
 
@@ -59,15 +55,18 @@ class Inventory19(Inventory):
 
 class Inventory20(Inventory):
 
-    def ask_vault_password(self):
+    def __init__(self, inventory, ask_vault_pass, vault_password_files, vault_ids):
+        if vault_ids or len(vault_password_files) > 1:
+            raise NotImplementedError
         from ansible.cli import CLI
-        return CLI.ask_vault_passwords()[0]
-
-    def __init__(self, inventory, ask_vault_pass, vault_password_file):
-        from ansible.cli import CLI
-        self.read_vault_password_file = CLI.read_vault_password_file
-        super(Inventory20, self).__init__(inventory, ask_vault_pass, vault_password_file)
+        super(Inventory20, self).__init__()
+        if ask_vault_pass:
+            self.vault_pass = CLI.ask_vault_passwords()
+        elif vault_password_files:
+            self.vault_pass = CLI.read_vault_password_file(vault_password_files[0])
         loader = DataLoader()
+        if self.vault_pass is not None:
+            loader.set_vault_password(self.vault_pass)
         self.variable_manager = VariableManager()
         self.inventory = ansible.inventory.Inventory(loader=loader, variable_manager=self.variable_manager,
                                                      host_list=inventory)
@@ -94,16 +93,13 @@ class Inventory20(Inventory):
 
 class Inventory24(Inventory):
 
-    def ask_vault_password(self):
-        from ansible.parsing.vault import PromptVaultSecret
-        prompt_vault_secret = PromptVaultSecret()
-        return prompt_vault_secret.ask_vault_passwords()[0]
-
-    def __init__(self, inventory, ask_vault_pass, vault_password_file):
+    def __init__(self, inventory, ask_vault_pass, vault_password_files, vault_ids):
+        from ansible.cli import CLI
         from ansible.parsing.vault import FileVaultSecret
-        self.read_vault_password_file = FileVaultSecret._read_file
-        super(Inventory24, self).__init__(inventory, ask_vault_pass, vault_password_file)
+        super(Inventory24, self).__init__()
         loader = DataLoader()
+        if vault_ids or vault_password_files or ask_vault_pass:
+            CLI.setup_vault_secrets(loader, vault_ids, vault_password_files, ask_vault_pass)
         self.inventory = ansible.inventory.manager.InventoryManager(loader=loader, sources=inventory)
         self.variable_manager = VariableManager(loader=loader)
         self.variable_manager.set_inventory(self.inventory)
@@ -155,8 +151,8 @@ class Inventory24(Inventory):
 
 
 class InventoryManager(object):
-    def __init__(self, inventory, ask_vault_pass=False, vault_password_file=None):
-        self.inventory = INVENTORY(inventory, ask_vault_pass, vault_password_file)
+    def __init__(self, inventory, ask_vault_pass=False, vault_password_files=[], vault_ids=[]):
+        self.inventory = INVENTORY(inventory, ask_vault_pass, vault_password_files, vault_ids)
 
 
 try:
