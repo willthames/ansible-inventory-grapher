@@ -68,11 +68,11 @@ class Inventory20(Inventory):
             raise NotImplementedError
         from ansible.cli import CLI
         super(Inventory20, self).__init__()
+        loader = DataLoader()
         if ask_vault_pass:
             self.vault_pass = CLI.ask_vault_passwords()
         elif vault_password_files:
-            self.vault_pass = CLI.read_vault_password_file(vault_password_files[0])
-        loader = DataLoader()
+            self.vault_pass = CLI.read_vault_password_file(vault_password_files[0], loader)
         if self.vault_pass is not None:
             loader.set_vault_password(self.vault_pass)
         self.variable_manager = VariableManager()

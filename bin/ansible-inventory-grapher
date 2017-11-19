@@ -88,22 +88,11 @@ def options_parser():
                       action="store_true",
                       help="prompt for vault password", default=False)
     parser.add_option('--vault-password-file', default=[], dest='vault_password_files',
-                      help="vault password file", action="callback", callback=unfrack_paths, type='string')
+                      help="vault password file", action='append', type='string')
     parser.add_option('--vault-id', default=[], dest='vault_ids', action='append', type='string',
                       help='the vault identity to use')
 
     return parser
-
-
-def unfrack_paths(option, opt, value, parser):
-    try:
-        from ansible.cli import CLI
-    except ImportError:
-        try:
-            from ansible import CLI
-            return CLI.unfrack_paths(option, opt, value, parser)
-        except (ImportError, AttributeError):
-            pass  # paths remains unfracked
 
 
 def labelescape(name):
