@@ -84,10 +84,9 @@ def options_parser():
                       help='include top-level graphviz attributes from ' +
                       'http://www.graphviz.org/doc/info/attrs.html [%default]',
                       default='rankdir=TB;')
-    parser.add_option('--ask-vault-pass', dest='ask_vault_pass',
-                      action="store_true",
-                      help="prompt for vault password", default=False)
-    parser.add_option('--vault-password-file', default=[], dest='vault_password_files',
+    parser.add_option('--ask-vault-pass', dest='ask_vault_pass', default=C.DEFAULT_ASK_VAULT_PASS,
+                      action="store_true", help="prompt for vault password")
+    parser.add_option('--vault-password-file', dest='vault_password_files',
                       help="vault password file", action='append', type='string')
     parser.add_option('--vault-id', default=[], dest='vault_ids', action='append', type='string',
                       help='the vault identity to use')

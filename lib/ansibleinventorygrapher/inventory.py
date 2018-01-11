@@ -16,6 +16,7 @@
 # along with ansible-inventory-grapher.  If not, see <http://www.gnu.org/licenses/>.
 
 import ansible.inventory
+import ansible.constants as C
 
 
 class NoVaultSecretFound(Exception):
@@ -165,7 +166,13 @@ class Inventory24(Inventory):
 
 
 class InventoryManager(object):
-    def __init__(self, inventory, ask_vault_pass=False, vault_password_files=[], vault_ids=[]):
+    def __init__(self, inventory, ask_vault_pass=False, vault_password_files=None, vault_ids=None):
+        if not vault_password_files:
+            vault_password_files = []
+            if C.DEFAULT_VAULT_PASSWORD_FILE:
+                vault_password_files.append(C.DEFAULT_VAULT_PASSWORD_FILE)
+        if not vault_ids:
+            vault_ids = []
         self.inventory = INVENTORY(inventory, ask_vault_pass, vault_password_files, vault_ids)
 
 
