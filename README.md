@@ -45,7 +45,10 @@ bin/ansible-inventory-grapher -i ../ansible-ec2-example/inventory/hosts \
   -d test --format "test-{hostname}.dot"
 ```
 
+## Customization
+
 You can add the `-a` option to insert a string with graphviz attributes (http://www.graphviz.org/doc/info/attrs.html) to apply to the root level of the graph.  Some fun examples:
+
 ```bash
 # transpose the tree so it grows from left-right instead of top-bottom
 -a "rankdir=LR;"
@@ -60,8 +63,50 @@ You can add the `-a` option to insert a string with graphviz attributes (http://
   edge [ dir=back arrowtail=empty ];"
 ```
 
-You can replace the default template (which can be seen by passing the `-T` variable to `ansible-inventory-grapher`) with a template file that can be
-passed with the `-t` option.
+You can replace the entire default template (which can be seen by passing the
+`-T` variable to `ansible-inventory-grapher`) with a template file
+that can be passed with the `-t` option.
+```bash
+cat << EOF > html_table_nodes.dot.j2
+digraph {{pattern|labelescape}} {
+  {{ attributes }}
+
+{% for node in nodes|sort(attribute='name') %}
+  {{ node.name|labelescape }} [shape=record
+  {{- " style=rounded" if node.leaf }} label=<
+<table border="0" cellborder="0">
+  <tr><td {%- if node.leaf %} href="ssh://{{ node.name|labelescape }}"{% endif -%} >
+  <b><font face="Times New Roman, Bold" point-size="16">
+  {{ node.name }}
+  </font></b></td></tr>
+{% if node.vars and showvars %}
+  <hr/><tr><td><font face="Times New Roman, Bold" point-size="14">
+{% for var in node.vars|sort %}
+  {{var}}<br/>
+{% endfor %}
+  </font></td></tr>
+{% endif %}
+</table>
+>]
+
+{% endfor %}
+
+{% for edge in edges|sort(attribute='source') %}
+  {{ edge.source|labelescape }} -> {{ edge.target|labelescape }};
+{% endfor %}
+}
+EOF
+
+bin/ansible-inventory-grapher -t html_table_nodes.dot.j2 -i ./test/inventory/hosts all > all.dot \
+  && dot -Tsvg all.dot > all.svg
+```
+
+as an aside, SVG output can be useful since you can open it in a
+browser to search and copy/paste text, as well as activate link URLs
+to open your nodes in ssh: (as in the sample above) or embed links to
+those nodes / groups in your ansible-cmdb or monitoring site.
+
+## Render Pipeline
 
 The resulting graphs can then be converted to pngs using:
 ```bash
