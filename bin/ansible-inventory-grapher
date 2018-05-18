@@ -39,7 +39,7 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
   <tr><td><b>
   <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
   </b></td></tr>
-{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}<br/>{%endfor %}</font></td></tr>{% endif %}
+{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}{% if var in visible_vars %} = {{node.vars[var]}}{% endif %}<br/>{%endfor %}</font></td></tr>{% endif %}
 </table>
 >]
 {% else %}
@@ -48,7 +48,7 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
   <tr><td><b>
   <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
   </b></td></tr>
-{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}<br/>{%endfor %}</font></td></tr>{% endif %}
+{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}{% if var in visible_vars %} = {{node.vars[var]}}{% endif %}<br/>{%endfor %}</font></td></tr>{% endif %}
 </table>
 >]
 {% endif %}{% endfor %}
@@ -90,6 +90,8 @@ def options_parser():
                       help="vault password file", action='append', type='string')
     parser.add_option('--vault-id', default=[], dest='vault_ids', action='append', type='string',
                       help='the vault identity to use')
+    parser.add_option('--visible-vars', default=[], dest='visible_vars', action='append', type='string',
+                      help='Visible variables with values')
 
     return parser
 
@@ -140,7 +142,8 @@ def render_graph(pattern, options):
         nodes |= host_nodes
     output = template.render(edges=edges, nodes=nodes, pattern=pattern,
                              attributes=options.attributes,
-                             showvars=options.showvars)
+                             showvars=options.showvars,
+                             visible_vars=options.visible_vars)
     if options.format != '-':
         filename = options.format.format(pattern)
         fullpath = os.path.join(options.directory, filename)
