@@ -20,6 +20,10 @@ setup(
     install_requires=['ansible >= 1.9'],
     package_dir={'ansibleinventorygrapher': 'lib/ansibleinventorygrapher'},
     packages=['ansibleinventorygrapher'],
-    scripts=['bin/ansible-inventory-grapher'],
+    entry_points={
+        'console_scripts': [
+             'ansible-inventory-grapher = ansibleinventorygrapher.__main__:main'
+        ]
+    },
     test_suite="test",
 )
