@@ -121,7 +121,7 @@ def render_graph(pattern, options):
     hosts = inventory_mgr.inventory.list_hosts(pattern)
     template = load_template(options)
     if not hosts:
-        print("No hosts matched for pattern %s" % pattern)
+        print("No hosts matched for pattern %s" % pattern, file=sys.stderr)
         return
     if not os.path.exists(options.directory):
         os.makedirs(options.directory)
