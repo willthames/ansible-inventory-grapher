@@ -38,7 +38,7 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
   <tr><td><b>
   <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
   </b></td></tr>
-{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}{% if var in visible_vars %} = {{node.vars[var]}}{% endif %}<br/>{%endfor %}</font></td></tr>{% endif %}
+{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}{% if var|is_visible %} = {{node.vars[var]}}{% endif %}<br/>{%endfor %}</font></td></tr>{% endif %}
 </table>
 >]
 {% else %}
@@ -47,7 +47,7 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
   <tr><td><b>
   <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
   </b></td></tr>
-{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}{% if var in visible_vars %} = {{node.vars[var]}}{% endif %}<br/>{%endfor %}</font></td></tr>{% endif %}
+{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}{% if var|is_visible %} = {{node.vars[var]}}{% endif %}<br/>{%endfor %}</font></td></tr>{% endif %}
 </table>
 >]
 {% endif %}{% endfor %}
@@ -90,8 +90,9 @@ def options_parser():
     parser.add_option('--vault-id', default=[], dest='vault_ids', action='append', type='string',
                       help='the vault identity to use')
     parser.add_option('--visible-vars', default=[], dest='visible_vars', action='append', type='string',
-                      help='Visible variables with values')
-
+                      help='Show value of a specific variable. Repeat for multiple variables')
+    parser.add_option('--show-all-values', default=[], dest='all_vars_visible', action='store_true',
+                      help='Show values of all variables')
     return parser
 
 
@@ -100,8 +101,12 @@ def labelescape(name):
 
 
 def load_template(options):
+    def is_visible(name):
+        return options.all_vars_visible or name in options.visible_vars
+
     env = jinja2.Environment(trim_blocks=True, loader=jinja2.FileSystemLoader(os.getcwd()))
     env.filters['labelescape'] = labelescape
+    env.filters['is_visible'] = is_visible
 
     if options.template:
         template = env.get_template(options.template)
@@ -137,8 +142,7 @@ def render_graph(pattern, options):
         nodes |= host_nodes
     output = template.render(edges=edges, nodes=nodes, pattern=pattern,
                              attributes=options.attributes,
-                             showvars=options.showvars,
-                             visible_vars=options.visible_vars)
+                             showvars=options.showvars)
     if options.format != '-':
         filename = options.format.format(pattern)
         fullpath = os.path.join(options.directory, filename)
