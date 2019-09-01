@@ -15,104 +15,28 @@
 # You should have received a copy of the GNU General Public License
 # along with ansible-inventory-grapher.  If not, see <http://www.gnu.org/licenses/>.
 
-import ansible.inventory
-import ansible.constants as C
+from ansible import constants
+from ansible.parsing.dataloader import DataLoader
+from ansible.vars.manager import VariableManager
+import ansible.inventory.manager
+import codecs
+import yaml
 
 
 class NoVaultSecretFound(Exception):
     pass
 
 
-class Inventory(object):
-    def __init__(self):
-        self.vault_pass = None
-
-    def get_host(self, host):
-        return self.inventory.get_host(host)
-
-    def list_hosts(self, pattern):
-        return self.inventory.list_hosts(pattern)
-
-
-class Inventory19(Inventory):
-
-    def __init__(self, inventory, ask_vault_pass, vault_password_files, vault_ids):
-        if vault_ids or len(vault_password_files) > 1:
-            raise NotImplementedError
-        from ansible import utils
-        super(Inventory19, self).__init__()
-        if ask_vault_pass:
-            self.vault_pass = utils.ask_passwords(ask_vault_pass=True)[2]
-        elif vault_password_files:
-            self.vault_pass = utils.read_vault_file(vault_password_files[0])
-        try:
-            self.inventory = ansible.inventory.Inventory(inventory, vault_password=self.vault_pass)
-        except ansible.errors.AnsibleError:
-            raise NoVaultSecretFound
-
-        self.variable_manager = None
-
-    def get_group_vars(self, group):
-        return self.inventory.get_group_vars(group)
-
-    def get_host_vars(self, host):
-        return self.inventory.get_host_vars(host)
-
-    def get_group(self, group_name):
-        return self.inventory.get_group(group_name)
-
-
-class Inventory20(Inventory):
-
-    def __init__(self, inventory, ask_vault_pass, vault_password_files, vault_ids):
-        if vault_ids or len(vault_password_files) > 1:
-            raise NotImplementedError
-        from ansible.cli import CLI
-        super(Inventory20, self).__init__()
-        loader = DataLoader()
-        if ask_vault_pass:
-            self.vault_pass = CLI.ask_vault_passwords()
-        elif vault_password_files:
-            self.vault_pass = CLI.read_vault_password_file(vault_password_files[0], loader)
-        if self.vault_pass is not None:
-            loader.set_vault_password(self.vault_pass)
-        self.variable_manager = VariableManager()
-        try:
-            self.inventory = ansible.inventory.Inventory(loader=loader,
-                                                         variable_manager=self.variable_manager,
-                                                         host_list=inventory)
-        except ansible.errors.AnsibleError:
-            raise NoVaultSecretFound
-        self.variable_manager.set_inventory(self.inventory)
-
-    def _handle_missing_return_result(self, fn, member):
-        import inspect
-        # http://stackoverflow.com/a/197053
-        vars = inspect.getargspec(fn)
-        if 'return_results' in vars[0]:
-            return fn(member, return_results=True)
-        else:
-            return fn(member)
-
-    def get_group_vars(self, group):
-        return self._handle_missing_return_result(self.inventory.get_group_vars, group)
-
-    def get_host_vars(self, host):
-        return self._handle_missing_return_result(self.inventory.get_host_vars, host)
-
-    def get_group(self, group_name):
-        return self.inventory.get_group(group_name)
-
-
-class Inventory24(Inventory):
+class AnsibleInventory(object):
 
     def __init__(self, inventory, ask_vault_pass, vault_password_files, vault_ids):
         from ansible.cli import CLI
-        super(Inventory24, self).__init__()
+        super(AnsibleInventory, self).__init__()
         loader = DataLoader()
         if vault_ids or vault_password_files or ask_vault_pass:
             CLI.setup_vault_secrets(loader, vault_ids, vault_password_files, ask_vault_pass)
-        self.inventory = ansible.inventory.manager.InventoryManager(loader=loader, sources=inventory)
+        self.inventory = ansible.inventory.manager.InventoryManager(loader=loader,
+                                                                    sources=inventory)
         self.variable_manager = VariableManager(loader=loader)
         self.variable_manager.set_inventory(self.inventory)
 
@@ -162,28 +86,23 @@ class Inventory24(Inventory):
         return {k: v for (k, v) in all_vars.items() if k not in magic_vars}
 
     def get_group(self, group_name):
-        return self.inventory.groups[group_name]
+        return self.inventory.groups.get(group_name)
+
+    def get_host(self, host):
+        return self.inventory.get_host(host)
+
+    def list_hosts(self, pattern):
+        return self.inventory.list_hosts(pattern)
 
 
 class InventoryManager(object):
     def __init__(self, inventory, ask_vault_pass=False, vault_password_files=None, vault_ids=None):
+
         if not vault_password_files:
             vault_password_files = []
-            if C.DEFAULT_VAULT_PASSWORD_FILE:
-                vault_password_files.append(C.DEFAULT_VAULT_PASSWORD_FILE)
+            if constants.DEFAULT_VAULT_PASSWORD_FILE:
+                vault_password_files.append(constants.DEFAULT_VAULT_PASSWORD_FILE)
         if not vault_ids:
             vault_ids = []
-        self.inventory = INVENTORY(inventory, ask_vault_pass, vault_password_files, vault_ids)
-
-
-try:
-    from ansible.parsing.dataloader import DataLoader
-    try:
-        from ansible.vars.manager import VariableManager
-        import ansible.inventory.manager
-        INVENTORY = Inventory24
-    except ImportError:
-        from ansible.vars import VariableManager
-        INVENTORY = Inventory20
-except ImportError:
-    INVENTORY = Inventory19
+        self.inventory = AnsibleInventory(inventory, ask_vault_pass,
+                                          vault_password_files, vault_ids)
