@@ -5,6 +5,7 @@
 # "machines".
 # See: http://docs.travis-ci.com/user/workers/container-based-infrastructure/
 sudo: false
+dist: xenial
 
 # TRAVIS_PYTHON_VERSION
 
@@ -16,39 +17,56 @@ matrix:
 
     - language: python
       python: "2.7"
-      env: TOXENV=py27-ansible19
-
-    - language: python
-      python: "2.7"
-      env: TOXENV=py27-ansible20
-
-    - language: python
-      python: "2.7"
-      env: TOXENV=py27-ansible21
-
-    - language: python
-      python: "2.7"
-      env: TOXENV=py27-ansible22
-
-    - language: python
-      python: "2.7"
-      env: TOXENV=py27-ansible23
-
-    - language: python
-      python: "2.7"
       env: TOXENV=py27-ansible24
+
+    - language: python
+      python: "2.7"
+      env: TOXENV=py27-ansible25
+
+    - language: python
+      python: "2.7"
+      env: TOXENV=py27-ansible26
+
+    - language: python
+      python: "2.7"
+      env: TOXENV=py27-ansible27
+
+    - language: python
+      python: "2.7"
+      env: TOXENV=py27-ansible28
 
     - language: python
       python: "2.7"
       env: TOXENV=py27-ansibledevel
 
-    - language: python
-      python: "3.6"
-      env: TOXENV=py36-ansible24
 
     - language: python
-      python: "3.6"
-      env: TOXENV=py36-flake8
+      python: "3.7"
+      env: TOXENV=py37-ansible24
+
+    - language: python
+      python: "3.7"
+      env: TOXENV=py37-ansible25
+
+    - language: python
+      python: "3.7"
+      env: TOXENV=py37-ansible26
+
+    - language: python
+      python: "3.7"
+      env: TOXENV=py37-ansible27
+
+    - language: python
+      python: "3.7"
+      env: TOXENV=py37-ansible28
+
+    - language: python
+      python: "3.7"
+      env: TOXENV=py37-ansibledevel
+
+    - language: python
+      python: "3.7"
+      env: TOXENV=py37-flake8
 
 install:
   - pip install -r test-deps.txt

@@ -129,10 +129,6 @@ def render_graph(pattern, options):
     edges = set()
     nodes = set()
     for host in hosts:
-        # inventory.list_hosts changed from list of hostnames to list
-        # of hosts between Ansible 1.9 and 2.0
-        if isinstance(host, string_types):
-            host = inventory_mgr.inventory.get_host(host)
         try:
             (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host, inventory_mgr)
         except ansibleinventorygrapher.inventory.NoVaultSecretFound:
