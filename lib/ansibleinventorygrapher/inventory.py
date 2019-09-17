@@ -72,7 +72,7 @@ class AnsibleInventory(object):
         return data
 
     def get_group_vars(self, group):
-        return self._plugins_inventory([group])
+        return group.get_vars() or self._plugins_inventory([group])
 
     def get_host_vars(self, host):
         try:
@@ -82,7 +82,8 @@ class AnsibleInventory(object):
         # play, host, task, include_hostvars, include_delegate_to
         magic_vars = ['ansible_playbook_python', 'groups', 'group_names', 'inventory_dir',
                       'inventory_file', 'inventory_hostname', 'inventory_hostname_short',
-                      'omit', 'playbook_dir', 'ansible_version', 'ansible_facts']
+                      'omit', 'playbook_dir', 'ansible_version', 'ansible_facts',
+                      'ansible_host']
         return {k: v for (k, v) in all_vars.items() if k not in magic_vars}
 
     def get_group(self, group_name):
