@@ -91,6 +91,8 @@ def options_parser():
                       help='the vault identity to use')
     parser.add_option('--visible-vars', default=[], dest='visible_vars', action='append', type='string',
                       help='Show value of a specific variable. Repeat for multiple variables')
+    arser.add_option('--hidden-vars', default=[], dest='hidden_vars', action='append', type='string',
+                      help='Hide value of a specific variable. Repeat for multiple variables')
     parser.add_option('--show-all-values', default=[], dest='all_vars_visible', action='store_true',
                       help='Show values of all variables')
     return parser
@@ -102,6 +104,8 @@ def labelescape(name):
 
 def load_template(options):
     def is_visible(name):
+        if name in options.hidden_vars:
+            return False
         return options.all_vars_visible or name in options.visible_vars
 
     env = jinja2.Environment(trim_blocks=True, loader=jinja2.FileSystemLoader(os.getcwd()))
