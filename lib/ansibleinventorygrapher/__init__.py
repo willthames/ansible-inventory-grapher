@@ -105,12 +105,18 @@ def tidy_all_the_variables(host, inventory_mgr):
     return _vars
 
 
-def generate_graph_for_host(host, inventory_mgr):
+def generate_graph_for_host(host, inventory_mgr, include_host):
     # dedup graph edges
     edges = set(parent_graphs(host, host.groups))
     vars = tidy_all_the_variables(host, inventory_mgr)
     nodes = set()
-    nodes.add(Node(host.name, vars=vars[host], leaf=True))
+
+    if include_host:
+        nodes.add(Node(host.name, vars=vars[host], leaf=True))
+    else:
+        for edge in edges.copy():
+            if edge.target == host.name:
+                edges.remove(edge)
 
     for group in host.get_groups():
         nodes.add(Node(group.name, vars=vars[group]))

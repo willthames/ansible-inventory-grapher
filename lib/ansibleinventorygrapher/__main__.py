@@ -75,6 +75,9 @@ def options_parser():
     parser.add_option('-q', '--no-variables', dest='showvars',
                       action="store_false", default=True,
                       help="Turn off variable display in default template")
+    parser.add_option('-n', '--no-hosts', dest='showhosts',
+                      action="store_false", default=True,
+                      help="Turn off display of hosts")
     parser.add_option('-t', dest='template',
                       help='path to jinja2 template used for creating output')
     parser.add_option('-T', dest='print_template', action="store_true",
@@ -135,7 +138,7 @@ def render_graph(pattern, options):
     nodes = set()
     for host in hosts:
         try:
-            (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host, inventory_mgr)
+            (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host, inventory_mgr, options.showhosts)
         except ansibleinventorygrapher.inventory.NoVaultSecretFound:
             raise SystemExit("Couldn't find a secret to decrypt vaulted file(s)")
         edges |= host_edges
