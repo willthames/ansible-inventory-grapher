@@ -19,8 +19,6 @@ from ansible import constants
 from ansible.parsing.dataloader import DataLoader
 from ansible.vars.manager import VariableManager
 import ansible.inventory.manager
-import codecs
-import yaml
 
 
 class NoVaultSecretFound(Exception):

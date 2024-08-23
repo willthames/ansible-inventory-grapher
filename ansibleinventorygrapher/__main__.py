@@ -22,7 +22,6 @@ import optparse
 import os
 import sys
 from ansible import constants
-from ansible.module_utils.six import string_types
 
 import ansibleinventorygrapher.inventory
 from ansibleinventorygrapher.version import __version__
@@ -38,7 +37,9 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
   <tr><td><b>
   <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
   </b></td></tr>
-{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}{% if var|is_visible %} = {{node.vars[var]}}{% endif %}<br/>{%endfor %}</font></td></tr>{% endif %}
+{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in
+   node.vars|sort %}{{var}}{% if var|is_visible %} = {{node.vars[var]}}{% endif %}<br/>{%
+   endfor %}</font></td></tr>{% endif %}
 </table>
 >]
 {% else %}
@@ -47,7 +48,9 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
   <tr><td><b>
   <font face="Times New Roman, Bold" point-size="16">{{ node.name}}</font>
   </b></td></tr>
-{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for var in node.vars|sort %}{{var}}{% if var|is_visible %} = {{node.vars[var]}}{% endif %}<br/>{%endfor %}</font></td></tr>{% endif %}
+{% if node.vars and showvars %}<hr/><tr><td><font face="Times New Roman, Bold" point-size="14">{% for
+   var in node.vars|sort %}{{var}}{% if var|is_visible %} = {{node.vars[var]}}{% endif %}<br/>{%
+   endfor %}</font></td></tr>{% endif %}
 </table>
 >]
 {% endif %}{% endfor %}
@@ -172,10 +175,6 @@ def render_graph(pattern, options):
             options.ask_vault_pass,
             options.vault_password_files,
             options.vault_ids,
-        )
-    except NotImplementedError:
-        raise SystemExit(
-            "Multiple vault password files and vault identities are only supported with Ansible 2.4 or greater"
         )
     except ansibleinventorygrapher.inventory.NoVaultSecretFound:
         raise SystemExit("Couldn't find a secret to decrypt vaulted file(s)")

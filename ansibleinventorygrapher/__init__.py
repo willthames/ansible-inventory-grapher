@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with ansible-inventory-grapher.  If not, see <http://www.gnu.org/licenses/>.
 
-from ansible.errors import AnsibleError
 from ansible.parsing.yaml.objects import AnsibleVaultEncryptedUnicode
 
 # Cache for parent graph lookups
@@ -77,11 +76,16 @@ def remove_inherited_and_overridden_vars(vars, group, inventory_mgr):
     for k, v in vars.copy().items():
         if k in gv:
             if isinstance(v, AnsibleVaultEncryptedUnicode) and isinstance(
-                v, AnsibleVaultEncryptedUnicode
+                gv[k], AnsibleVaultEncryptedUnicode
             ):
                 comparison = (gv[k]._ciphertext, v._ciphertext)
             else:
-                comparison = (gv[k], v)
+                if isinstance(v, AnsibleVaultEncryptedUnicode) or isinstance(
+                    gv[k], AnsibleVaultEncryptedUnicode
+                ):
+                    comparison = [0, 1]
+                else:
+                    comparison = (gv[k], v)
             if comparison[0] == comparison[1]:
                 del vars[k]
             else:

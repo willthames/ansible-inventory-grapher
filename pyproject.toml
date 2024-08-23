@@ -28,6 +28,7 @@ readme = {file = ["README.md"], content-type = "text/markdown"}
 [project.optional-dependencies]
 dev = [
     "black",
+    "build",
     "flake8",
     "pytest",
     "tox",
