@@ -31,12 +31,16 @@ class AnsibleInventory(object):
 
     def __init__(self, inventory, ask_vault_pass, vault_password_files, vault_ids):
         from ansible.cli import CLI
+
         super(AnsibleInventory, self).__init__()
         loader = DataLoader()
         if vault_ids or vault_password_files or ask_vault_pass:
-            CLI.setup_vault_secrets(loader, vault_ids, vault_password_files, ask_vault_pass)
-        self.inventory = ansible.inventory.manager.InventoryManager(loader=loader,
-                                                                    sources=inventory)
+            CLI.setup_vault_secrets(
+                loader, vault_ids, vault_password_files, ask_vault_pass
+            )
+        self.inventory = ansible.inventory.manager.InventoryManager(
+            loader=loader, sources=inventory
+        )
         self.variable_manager = VariableManager(loader=loader)
         self.variable_manager.set_inventory(self.inventory)
 
@@ -46,20 +50,24 @@ class AnsibleInventory(object):
         import os
         from ansible.plugins.loader import vars_loader
         from ansible.utils.vars import combine_vars
-        ''' merges all entities by inventory source '''
+
+        """ merges all entities by inventory source """
         data = {}
         for inventory_dir in self.variable_manager._inventory._sources:
-            if ',' in inventory_dir:  # skip host lists
+            if "," in inventory_dir:  # skip host lists
                 continue
             elif not os.path.isdir(inventory_dir):  # always pass 'inventory directory'
                 inventory_dir = os.path.dirname(inventory_dir)
 
             for plugin in vars_loader.all():
-                data = combine_vars(data, self._get_plugin_vars(plugin, inventory_dir, entities))
+                data = combine_vars(
+                    data, self._get_plugin_vars(plugin, inventory_dir, entities)
+                )
         return data
 
     def _get_plugin_vars(self, plugin, path, entities):
         from ansible.inventory.host import Host
+
         data = {}
         try:
             data = plugin.get_vars(self.variable_manager._loader, path, entities)
@@ -80,9 +88,19 @@ class AnsibleInventory(object):
         except ansible.errors.AnsibleParserError:
             raise NoVaultSecretFound
         # play, host, task, include_hostvars, include_delegate_to
-        magic_vars = ['ansible_playbook_python', 'groups', 'group_names', 'inventory_dir',
-                      'inventory_file', 'inventory_hostname', 'inventory_hostname_short',
-                      'omit', 'playbook_dir', 'ansible_version', 'ansible_facts']
+        magic_vars = [
+            "ansible_playbook_python",
+            "groups",
+            "group_names",
+            "inventory_dir",
+            "inventory_file",
+            "inventory_hostname",
+            "inventory_hostname_short",
+            "omit",
+            "playbook_dir",
+            "ansible_version",
+            "ansible_facts",
+        ]
         return {k: v for (k, v) in all_vars.items() if k not in magic_vars}
 
     def get_group(self, group_name):
@@ -96,7 +114,9 @@ class AnsibleInventory(object):
 
 
 class InventoryManager(object):
-    def __init__(self, inventory, ask_vault_pass=False, vault_password_files=None, vault_ids=None):
+    def __init__(
+        self, inventory, ask_vault_pass=False, vault_password_files=None, vault_ids=None
+    ):
 
         if not vault_password_files:
             vault_password_files = []
@@ -104,5 +124,6 @@ class InventoryManager(object):
                 vault_password_files.append(constants.DEFAULT_VAULT_PASSWORD_FILE)
         if not vault_ids:
             vault_ids = []
-        self.inventory = AnsibleInventory(inventory, ask_vault_pass,
-                                          vault_password_files, vault_ids)
+        self.inventory = AnsibleInventory(
+            inventory, ask_vault_pass, vault_password_files, vault_ids
+        )

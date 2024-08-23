@@ -17,6 +17,7 @@
 
 from ansible.errors import AnsibleError
 from ansible.parsing.yaml.objects import AnsibleVaultEncryptedUnicode
+
 # Cache for parent graph lookups
 _parents = dict()
 
@@ -73,17 +74,18 @@ def remove_inherited_and_overridden_vars(vars, group, inventory_mgr):
     if group not in _vars:
         _vars[group] = inventory_mgr.inventory.get_group_vars(group)
     gv = _vars[group]
-    for (k, v) in vars.copy().items():
+    for k, v in vars.copy().items():
         if k in gv:
-            if (isinstance(v, AnsibleVaultEncryptedUnicode) and
-                isinstance(v, AnsibleVaultEncryptedUnicode)):
+            if isinstance(v, AnsibleVaultEncryptedUnicode) and isinstance(
+                v, AnsibleVaultEncryptedUnicode
+            ):
                 comparison = (gv[k]._ciphertext, v._ciphertext)
             else:
                 comparison = (gv[k], v)
             if comparison[0] == comparison[1]:
-                del(vars[k])
+                del vars[k]
             else:
-                del(gv[k])
+                del gv[k]
 
 
 def remove_inherited_and_overridden_group_vars(group, inventory_mgr):
@@ -94,8 +96,8 @@ def remove_inherited_and_overridden_group_vars(group, inventory_mgr):
 
 
 def tidy_all_the_variables(host, inventory_mgr):
-    ''' removes all overridden and inherited variables from hosts
-        and groups '''
+    """removes all overridden and inherited variables from hosts
+    and groups"""
     global _vars
     _vars = dict()
     _vars[host] = inventory_mgr.inventory.get_host_vars(host)

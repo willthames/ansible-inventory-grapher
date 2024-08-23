@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ansible-inventory-grapher"
+authors = [
+    {name = "Will Thames", email = "will@thames.id.au"},
+]
+description = "Creates graphs representing ansible inventory"
+requires-python = ">=3.10"
+license = {text = "GPLv3"}
+dependencies = [
+    'ansible-core >= 2.12'
+]
+dynamic = ["version", "readme"]
+
+[project.urls]
+Homepage = "https://github.com/willthames/ansible-inventory-grapher"
+
+[project.scripts]
+ansible-inventory-grapher = "ansibleinventorygrapher.__main__:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "ansibleinventorygrapher.version.__version__"}
+readme = {file = ["README.md"], content-type = "text/markdown"}
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "flake8",
+    "pytest",
+    "tox",
+]
