@@ -70,6 +70,7 @@ def options_parser():
         "-i",
         dest="inventory",
         help="specify inventory host file [%default]",
+        action="append",
         default=constants.DEFAULT_HOST_LIST,
     )
     parser.add_option(
