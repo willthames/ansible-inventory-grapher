@@ -62,51 +62,101 @@ DEFAULT_TEMPLATE = """digraph {{pattern|labelescape}} {
 
 def options_parser():
     usage = "%prog [options] pattern1 [pattern2 ...]"
-    parser = optparse.OptionParser(usage=usage,version="%prog " + __version__)
-    parser.add_option('-i', dest='inventory',
-                      help="specify inventory host file [%default]",
-                      default=constants.DEFAULT_HOST_LIST)
-    parser.add_option('-d', dest='directory',
-                      help="Location to output resulting files [current directory]",
-                      default=os.getcwd())
-    parser.add_option('-o', '--format', dest='format', default="-",
-                      help="python format string to name output files " +
-                      '(e.g. {}.dot) [defaults to stdout]')
-    parser.add_option('-q', '--no-variables', dest='showvars',
-                      action="store_false", default=True,
-                      help="Turn off variable display in default template")
-    parser.add_option('-t', dest='template',
-                      help='path to jinja2 template used for creating output')
-    parser.add_option('-T', dest='print_template', action="store_true",
-                      help='print default template')
-    parser.add_option('-a', dest='attributes',
-                      help='include top-level graphviz attributes from ' +
-                      'http://www.graphviz.org/doc/info/attrs.html [%default]',
-                      default='rankdir=TB;')
-    parser.add_option('--ask-vault-pass', dest='ask_vault_pass', default=constants.DEFAULT_ASK_VAULT_PASS,
-                      action="store_true", help="prompt for vault password")
-    parser.add_option('--vault-password-file', dest='vault_password_files',
-                      help="vault password file", action='append', type='string')
-    parser.add_option('--vault-id', default=[], dest='vault_ids', action='append', type='string',
-                      help='the vault identity to use')
-    parser.add_option('--visible-vars', default=[], dest='visible_vars', action='append', type='string',
-                      help='Show value of a specific variable. Repeat for multiple variables')
-    parser.add_option('--show-all-values', default=[], dest='all_vars_visible', action='store_true',
-                      help='Show values of all variables')
+    parser = optparse.OptionParser(usage=usage, version="%prog " + __version__)
+    parser.add_option(
+        "-i",
+        dest="inventory",
+        help="specify inventory host file [%default]",
+        default=constants.DEFAULT_HOST_LIST,
+    )
+    parser.add_option(
+        "-d",
+        dest="directory",
+        help="Location to output resulting files [current directory]",
+        default=os.getcwd(),
+    )
+    parser.add_option(
+        "-o",
+        "--format",
+        dest="format",
+        default="-",
+        help="python format string to name output files "
+        + "(e.g. {}.dot) [defaults to stdout]",
+    )
+    parser.add_option(
+        "-q",
+        "--no-variables",
+        dest="showvars",
+        action="store_false",
+        default=True,
+        help="Turn off variable display in default template",
+    )
+    parser.add_option(
+        "-t", dest="template", help="path to jinja2 template used for creating output"
+    )
+    parser.add_option(
+        "-T", dest="print_template", action="store_true", help="print default template"
+    )
+    parser.add_option(
+        "-a",
+        dest="attributes",
+        help="include top-level graphviz attributes from "
+        + "http://www.graphviz.org/doc/info/attrs.html [%default]",
+        default="rankdir=TB;",
+    )
+    parser.add_option(
+        "--ask-vault-pass",
+        dest="ask_vault_pass",
+        default=constants.DEFAULT_ASK_VAULT_PASS,
+        action="store_true",
+        help="prompt for vault password",
+    )
+    parser.add_option(
+        "--vault-password-file",
+        dest="vault_password_files",
+        help="vault password file",
+        action="append",
+        type="string",
+    )
+    parser.add_option(
+        "--vault-id",
+        default=[],
+        dest="vault_ids",
+        action="append",
+        type="string",
+        help="the vault identity to use",
+    )
+    parser.add_option(
+        "--visible-vars",
+        default=[],
+        dest="visible_vars",
+        action="append",
+        type="string",
+        help="Show value of a specific variable. Repeat for multiple variables",
+    )
+    parser.add_option(
+        "--show-all-values",
+        default=[],
+        dest="all_vars_visible",
+        action="store_true",
+        help="Show values of all variables",
+    )
     return parser
 
 
 def labelescape(name):
-    return "\"%s\"" % name.replace("-", "_").replace(".", "_")
+    return '"%s"' % name.replace("-", "_").replace(".", "_")
 
 
 def load_template(options):
     def is_visible(name):
         return options.all_vars_visible or name in options.visible_vars
 
-    env = jinja2.Environment(trim_blocks=True, loader=jinja2.FileSystemLoader(os.getcwd()))
-    env.filters['labelescape'] = labelescape
-    env.filters['is_visible'] = is_visible
+    env = jinja2.Environment(
+        trim_blocks=True, loader=jinja2.FileSystemLoader(os.getcwd())
+    )
+    env.filters["labelescape"] = labelescape
+    env.filters["is_visible"] = is_visible
 
     if options.template:
         template = env.get_template(options.template)
@@ -117,10 +167,16 @@ def load_template(options):
 
 def render_graph(pattern, options):
     try:
-        inventory_mgr = ansibleinventorygrapher.inventory.InventoryManager(options.inventory, options.ask_vault_pass,
-                                                                           options.vault_password_files, options.vault_ids)
+        inventory_mgr = ansibleinventorygrapher.inventory.InventoryManager(
+            options.inventory,
+            options.ask_vault_pass,
+            options.vault_password_files,
+            options.vault_ids,
+        )
     except NotImplementedError:
-        raise SystemExit("Multiple vault password files and vault identities are only supported with Ansible 2.4 or greater")
+        raise SystemExit(
+            "Multiple vault password files and vault identities are only supported with Ansible 2.4 or greater"
+        )
     except ansibleinventorygrapher.inventory.NoVaultSecretFound:
         raise SystemExit("Couldn't find a secret to decrypt vaulted file(s)")
 
@@ -135,18 +191,24 @@ def render_graph(pattern, options):
     nodes = set()
     for host in hosts:
         try:
-            (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(host, inventory_mgr)
+            (host_edges, host_nodes) = ansibleinventorygrapher.generate_graph_for_host(
+                host, inventory_mgr
+            )
         except ansibleinventorygrapher.inventory.NoVaultSecretFound:
             raise SystemExit("Couldn't find a secret to decrypt vaulted file(s)")
         edges |= host_edges
         nodes |= host_nodes
-    output = template.render(edges=edges, nodes=nodes, pattern=pattern,
-                             attributes=options.attributes,
-                             showvars=options.showvars)
-    if options.format != '-':
+    output = template.render(
+        edges=edges,
+        nodes=nodes,
+        pattern=pattern,
+        attributes=options.attributes,
+        showvars=options.showvars,
+    )
+    if options.format != "-":
         filename = options.format.format(pattern)
         fullpath = os.path.join(options.directory, filename)
-        with open(fullpath, 'w') as f:
+        with open(fullpath, "w") as f:
             f.write(output)
     else:
         sys.stdout.write(output)
